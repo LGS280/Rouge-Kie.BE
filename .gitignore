@@ -1,0 +1,53 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio cache/options
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VSCode
+.idea/
+.vscode/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs
+*.log
+
+# Database files
+*.mdf
+*.ldf
+
+# Publish output
+publish/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Entity Framework
+*.edmx.diagram
+
+# Node modules (nếu có React/Vue trong project)
+node_modules/
+
+# Environment variables
+.env
+
+# Generated files
+wwwroot/dist/
+wwwroot/lib/
+
+# Test Results
+TestResults/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+appsettings*.json

@@ -1,0 +1,6 @@
+@Rogue_Kie.BE.API_HostAddress = http://localhost:5291
+
+GET {{Rogue_Kie.BE.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
