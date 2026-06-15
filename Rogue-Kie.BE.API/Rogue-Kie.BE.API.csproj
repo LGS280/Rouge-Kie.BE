@@ -9,10 +9,17 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.27" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.27">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Rogue-Kie.BE.Business\Rogue-Kie.BE.Business.csproj" />
+    <ProjectReference Include="..\Rogue-Kie.BE.DataAccess\Rogue-Kie.BE.DataAccess.csproj" />
+    <ProjectReference Include="..\Rogue-Kie.BE.Contracts\Rogue-Kie.BE.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
