@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Rogue-Kie.BE.API/Rogue-Kie.BE.API.csproj" />
   <Project Path="Rogue-Kie.BE.Business/Rogue-Kie.BE.Business.csproj" />
+  <Project Path="Rogue-Kie.BE.Contracts/Rogue-Kie.BE.Contracts.csproj" />
   <Project Path="Rogue-Kie.BE.DataAccess/Rogue-Kie.BE.DataAccess.csproj" />
 </Solution>
