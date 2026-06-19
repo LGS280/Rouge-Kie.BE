@@ -38,10 +38,20 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("Username đã tồn tại.");
             }
 
+            var playerRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Name == "Player");
+
+            if (playerRole == null)
+            {
+                throw new InvalidOperationException("Role Player không tồn tại.");
+            }
+
             var user = new User
             {
                 Username = username.Trim(),
-                Password = BCrypt.Net.BCrypt.HashPassword(password)
+                Password = BCrypt.Net.BCrypt.HashPassword(password),
+                RoleId = playerRole.Id,
+                Role = playerRole
             };
 
             _context.Users.Add(user);
