@@ -45,6 +45,7 @@ namespace Rogue_Kie.BE.Business.Services.Users
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .OrderBy(u => u.Id)
                 .Select(u => new UserResponse
                 {
                     Id = u.Id,

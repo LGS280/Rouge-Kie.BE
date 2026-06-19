@@ -9,9 +9,9 @@ namespace Rogue_Kie.BE.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly Rogue_Kie.BE.Business.Services.Auth.ITokenService _tokenService;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(IAuthService authService, Rogue_Kie.BE.Business.Services.Auth.ITokenService tokenService)
+        public AuthController(IAuthService authService, ITokenService tokenService)
         {
             _authService = authService;
             _tokenService = tokenService;
@@ -43,7 +43,8 @@ namespace Rogue_Kie.BE.API.Controllers
                     Success = true,
                     Message = "Đăng ký tài khoản thành công.",
                     UserId = user.Id,
-                    Username = user.Username
+                    Username = user.Username,
+                    Role = user.Role?.Name == null ? "User" : user.Role.Name
                 });
             }
             catch (ArgumentException ex)
