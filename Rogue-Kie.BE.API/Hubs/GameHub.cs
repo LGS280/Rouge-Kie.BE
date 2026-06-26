@@ -152,5 +152,24 @@ namespace Rogue_Kie.BE.API.Hubs
 
             return code;
         }
+
+        public async Task StartGame()
+        {
+            // Tìm phòng chơi hiện tại dựa trên ConnectionId của người gọi lệnh
+            if (RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string roomCode))
+            {
+                if (RoomManager.ActiveRooms.TryGetValue(roomCode, out var room))
+                {
+                    // Kiểm tra bảo mật: Chỉ cho phép người là HOST được quyền bắt đầu trận đấu
+                    var player = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+                    if (player != null && player.IsHost)
+                    {
+                        // Phát lệnh chuyển Scene cho TOÀN BỘ thành viên trong Group mã phòng này
+                        await Clients.Group(roomCode).SendAsync("OnGameStarted");
+                    }
+                }
+            }
+        }
+
     }
 }
