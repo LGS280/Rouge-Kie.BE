@@ -15,6 +15,11 @@ namespace Rogue_Kie.BE.DataAccess.Models
 
         [Required]
         [MaxLength(255)]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 
         [ForeignKey(nameof(Role))]

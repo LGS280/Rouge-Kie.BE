@@ -9,6 +9,11 @@ namespace Rogue_Kie.BE.Contracts.Auth
         public string Username { get; set; } = string.Empty;
 
         [Required]
+        [EmailAddress]
+        [MaxLength(255)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
         [MinLength(6)]
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
@@ -18,5 +23,9 @@ namespace Rogue_Kie.BE.Contracts.Auth
         [MaxLength(255)]
         [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(6, MinimumLength = 6)]
+        public string OtpCode { get; set; } = string.Empty;
     }
 }

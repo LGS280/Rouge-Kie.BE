@@ -26,14 +26,16 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                 new User 
                 { 
                     Id = 1, 
-                    Username = "admin", 
+                    Username = "admin",
+                    Email = "admin@rogue-kie.local",
                     Password = adminPassword,
                     RoleId = 1 
                 },
                 new User 
                 { 
                     Id = 2, 
-                    Username = "guest", 
+                    Username = "guest",
+                    Email = "guest@rogue-kie.local",
                     Password = guestPassword,
                     RoleId = 4 
                 }

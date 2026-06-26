@@ -34,7 +34,7 @@ namespace Rogue_Kie.BE.API.Controllers
         {
             try
             {
-                var result = await _userService.CreateUserAsync(request.Username, request.Password);
+                var result = await _userService.CreateUserAsync(request.Username, request.Email, request.Password);
                 if (result != null)
                 {
                     return Created($"/api/users/{result.Id}", result);

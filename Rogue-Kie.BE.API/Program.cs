@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Rogue_Kie.BE.Business.Services.Auth;
+using Rogue_Kie.BE.Business.Services.Email;
 using Rogue_Kie.BE.Business.Services.Roles;
 using Rogue_Kie.BE.Business.Services.Users;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -33,6 +34,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configure JwtSettings from configuration
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
