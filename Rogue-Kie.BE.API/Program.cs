@@ -36,6 +36,9 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// Add SignalR
+builder.Services.AddSignalR();
+
 // Configure JwtSettings from configuration
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
@@ -119,5 +122,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<Rogue_Kie.BE.API.Hubs.GameHub>("/gamehub");
 
 app.Run();
