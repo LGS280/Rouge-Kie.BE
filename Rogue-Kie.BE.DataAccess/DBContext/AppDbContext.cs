@@ -14,6 +14,8 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
 
         public DbSet<User> Users => Set<User>();
 
+        public DbSet<RegistrationOtp> RegistrationOtps => Set<RegistrationOtp>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -39,10 +41,15 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
                 entity.ToTable("Users");
                 entity.HasKey(x => x.Id);
                 entity.HasIndex(x => x.Username).IsUnique();
+                entity.HasIndex(x => x.Email).IsUnique();
 
                 entity.Property(x => x.Username)
                     .IsRequired()
                     .HasMaxLength(50);
+
+                entity.Property(x => x.Email)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
                 entity.Property(x => x.Password)
                     .IsRequired()
@@ -53,6 +60,21 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
                     .WithMany(r => r.Users)
                     .HasForeignKey(x => x.RoleId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<RegistrationOtp>(entity =>
+            {
+                entity.ToTable("RegistrationOtps");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.Email);
+
+                entity.Property(x => x.Email)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(x => x.OtpCode)
+                    .IsRequired()
+                    .HasMaxLength(6);
             });
 
             // Seed data

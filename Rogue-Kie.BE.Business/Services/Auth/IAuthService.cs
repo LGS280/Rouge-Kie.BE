@@ -4,8 +4,10 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 {
     public interface IAuthService
     {
-        Task<User?> RegisterAsync(string username, string password);
+        Task SendRegisterOtpAsync(string email);
 
-        Task<User?> LoginAsync(string username, string password);
+        Task<User?> RegisterAsync(string username, string email, string password, string otpCode);
+
+        Task<User?> LoginAsync(string usernameOrEmail, string password);
     }
 }

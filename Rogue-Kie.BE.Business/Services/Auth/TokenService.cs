@@ -16,8 +16,11 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             _settings = options.Value;
         }
 
+        // Tạo JWT cho user sau khi đăng nhập thành công.
+        // Nếu API có [Authorize] bị lỗi 401, kiểm tra claims, secret, issuer, audience và expiry.
         public string GenerateToken(DataAccess.Models.User user)
         {
+            // Claims là thông tin được nhúng trong token để backend nhận biết user và role.
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -29,9 +32,11 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 claims.Add(new Claim(ClaimTypes.Role, user.Role.Name));
             }
 
+            // Secret phải đủ mạnh và trùng với cấu hình JWT trong Program.cs.
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Thời hạn token lấy từ appsettings: JwtSettings:ExpiryMinutes.
             var expires = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
 
             var token = new JwtSecurityToken(

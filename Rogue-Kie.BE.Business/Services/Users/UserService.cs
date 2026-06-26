@@ -14,24 +14,27 @@ namespace Rogue_Kie.BE.Business.Services.Users
             _context = context;
         }
 
-        public async Task<User?> CreateUserAsync(string username, string password)
+        public async Task<User?> CreateUserAsync(string username, string email, string password)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("Username và Password không được để trống.");
+                throw new ArgumentException("Username, Email và Password không được để trống.");
             }
 
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+
             var existingUser = await _context.Users
-                .AnyAsync(x => x.Username == username);
+                .AnyAsync(x => x.Username == username || x.Email == normalizedEmail);
 
             if (existingUser)
             {
-                throw new InvalidOperationException("Username đã tồn tại.");
+                throw new InvalidOperationException("Username hoặc Email đã tồn tại.");
             }
 
             var user = new User
             {
                 Username = username.Trim(),
+                Email = normalizedEmail,
                 Password = BCrypt.Net.BCrypt.HashPassword(password)
             };
 
@@ -50,6 +53,7 @@ namespace Rogue_Kie.BE.Business.Services.Users
                 {
                     Id = u.Id,
                     Username = u.Username,
+                    Email = u.Email,
                     RoleName = u.Role != null ? u.Role.Name : null
                 })
                 .ToListAsync();

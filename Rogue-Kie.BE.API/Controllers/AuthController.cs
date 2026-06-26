@@ -17,17 +17,63 @@ namespace Rogue_Kie.BE.API.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        // API gửi mã OTP đăng ký về email.
+        // Unity gọi endpoint này trước khi gọi /api/auth/register.
+        [HttpPost("send-register-otp")]
+        public async Task<IActionResult> SendRegisterOtp([FromBody] SendRegisterOtpRequest request)
         {
             try
             {
+                // Kiểm tra validate từ SendRegisterOtpRequest, ví dụ email bắt buộc và đúng format.
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                var user = await _authService.RegisterAsync(request.Username, request.Password);
+                await _authService.SendRegisterOtpAsync(request.Email);
+
+                return Ok(new SendRegisterOtpResponse
+                {
+                    Success = true,
+                    Message = "Mã OTP đã được gửi đến email của bạn."
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new SendRegisterOtpResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new SendRegisterOtpResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        // API đăng ký tài khoản mới.
+        // Payload cần username, email, password, confirmPassword và otpCode.
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                // Nếu thiếu field hoặc confirmPassword không khớp, dừng trước khi vào service.
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = await _authService.RegisterAsync(
+                    request.Username,
+                    request.Email,
+                    request.Password,
+                    request.OtpCode);
 
                 if (user == null)
                 {
@@ -44,6 +90,7 @@ namespace Rogue_Kie.BE.API.Controllers
                     Message = "Đăng ký tài khoản thành công.",
                     UserId = user.Id,
                     Username = user.Username,
+                    Email = user.Email,
                     Role = user.Role?.Name == null ? "User" : user.Role.Name
                 });
             }
@@ -65,11 +112,14 @@ namespace Rogue_Kie.BE.API.Controllers
             }
         }
 
+        // API đăng nhập.
+        // Field Username có thể nhận username hoặc email, phần service sẽ tự kiểm tra cả hai.
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
+                // Kiểm tra request cơ bản trước khi tìm user trong database.
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
@@ -86,6 +136,7 @@ namespace Rogue_Kie.BE.API.Controllers
                     });
                 }
 
+                // Tạo JWT để Unity lưu vào PlayerPrefs và gửi kèm Authorization cho API cần đăng nhập.
                 var token = _tokenService.GenerateToken(user);
 
                 return Ok(new LoginResponse
