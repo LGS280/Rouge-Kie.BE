@@ -3,7 +3,7 @@ name: Build and Deploy Rogue-Kie BE to Azure App Service
 on:
   push:
     branches:
-      - Nhat
+      - dev
   workflow_dispatch:
 
 jobs:
