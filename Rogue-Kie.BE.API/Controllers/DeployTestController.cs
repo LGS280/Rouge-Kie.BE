@@ -16,7 +16,7 @@ namespace Rogue_Kie.BE.API.Controllers
             });
         }
 
-        [HttpGet("ping")]
+        [HttpGet("ping1111111111")]
         public IActionResult Ping()
         {
             return Ok("pong");
