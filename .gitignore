@@ -53,3 +53,10 @@ _ReSharper*/
 appsettings.json
 appsettings.Development.json
 !appsettings.example.json
+
+####################################
+# Azure / Deploy secrets
+####################################
+*.pubxml
+*.publishsettings
+*.arm.json
