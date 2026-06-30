@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace Rogue_Kie.BE.API.Hubs
@@ -169,6 +170,22 @@ namespace Rogue_Kie.BE.API.Hubs
                     }
                 }
             }
+        }
+
+        // Gửi sự kiện bắn súng từ người chơi
+        public async Task SendShoot(string roomId, string weaponId, float px, float py, float dx, float dy)
+        {
+            string playerId = Context.ConnectionId;
+            // Phát sóng tới tất cả người chơi khác trong phòng để tự vẽ đạn
+            await Clients.OthersInGroup(roomId).SendAsync("OnPlayerShoot", playerId, weaponId, px, py, dx, dy);
+        }
+
+        // Gửi sự kiện quái vật nhận sát thương (Xác thực phía Server/Host)
+        public async Task RegisterEnemyHit(string roomId, string enemyId, float damage)
+        {
+            // Trong môi trường Authoritative, Server sẽ kiểm tra lượng HP còn lại của quái
+            // Sau đó phát sóng lượng HP mới tới toàn bộ Client
+            await Clients.Group(roomId).SendAsync("OnEnemyDamaged", enemyId, damage);
         }
 
     }
