@@ -109,6 +109,26 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // ===================================================================================
+        // BỔ SUNG: CÁC PHƯƠNG THỨC XỬ LÝ LỆNH ĐỒNG BỘ PHÒNG (ROOM COMBAT) TỪ CLIENT GỬI LÊN
+        // ===================================================================================
+
+        // Khi có bất kỳ ai bước vào một phòng combat, broadcast thông số để lôi kéo đồng đội vào chung phòng
+        public async Task TriggerRoomCombat(string matchRoomId, string targetRoomId, float centerX, float centerY)
+        {
+            // Gửi lệnh xuống TOÀN BỘ người chơi đang có trong trận đấu này
+            await Clients.Group(matchRoomId).SendAsync("OnRoomCombatStarted", targetRoomId, centerX, centerY);
+        }
+
+        // Khi một máy khách xử lý xong quái và báo phòng đã sạch, phát tín hiệu mở cửa đồng loạt
+        public async Task RegisterRoomCleared(string matchRoomId, string targetRoomId)
+        {
+            // Gửi lệnh xuống TOÀN BỘ người chơi để đồng loạt gọi hàm mở cửa local
+            await Clients.Group(matchRoomId).SendAsync("OnRoomClearedFromServer", targetRoomId);
+        }
+
+        // ===================================================================================
+
         // 5. Xử lý khi ngắt kết nối đột ngột
         public override async Task OnDisconnectedAsync(Exception exception)
         {
