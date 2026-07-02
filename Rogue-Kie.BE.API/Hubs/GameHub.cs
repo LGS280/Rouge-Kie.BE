@@ -33,6 +33,7 @@ namespace Rogue_Kie.BE.API.Hubs
     public class GameHub : Hub
     {
         // 1. Tạo phòng mới (Create Room)
+        // 1. Trong hàm CreateRoom
         public async Task CreateRoom(string username)
         {
             string roomCode = GenerateRoomCode();
@@ -48,12 +49,13 @@ namespace Rogue_Kie.BE.API.Hubs
             RoomManager.ActiveRooms[roomCode] = room;
             RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
 
-            // Đưa người chơi vào Group của SignalR để tiện broadcast
             await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
-            await Clients.Caller.SendAsync("OnRoomCreated", roomCode);
+
+            // THAY ĐỔI Ở ĐÂY: Truyền thêm giá trị true (vì người tạo chắc chắn là Host)
+            await Clients.Caller.SendAsync("OnRoomCreated", roomCode, true);
         }
 
-        // 2. Tham gia phòng (Join Room)
+        // 2. Trong hàm JoinRoom
         public async Task JoinRoom(string roomCode, string username)
         {
             roomCode = roomCode.ToUpper().Trim();
@@ -64,7 +66,7 @@ namespace Rogue_Kie.BE.API.Hubs
                 return;
             }
 
-            if (room.Players.Count >= 4) // Giới hạn 4 người chơi co-op
+            if (room.Players.Count >= 4)
             {
                 await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đã đầy!");
                 return;
@@ -74,7 +76,7 @@ namespace Rogue_Kie.BE.API.Hubs
             {
                 ConnectionId = Context.ConnectionId,
                 Username = username,
-                IsHost = false
+                IsHost = false // Người vào sau mặc định không phải Host ban đầu
             };
 
             room.Players.Add(newPlayer);
@@ -82,11 +84,11 @@ namespace Rogue_Kie.BE.API.Hubs
 
             await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
 
-            // Trả về cho người chơi mới danh sách thành viên hiện tại trong phòng
             var currentPlayers = room.Players.Select(p => p.Username).ToList();
-            await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, currentPlayers);
 
-            // Thông báo cho các người chơi cũ có người mới tham gia
+            // THAY ĐỔI Ở ĐÂY: Truyền thêm giá trị false về cho Caller (vì họ là người vào sau, không phải Host)
+            await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, currentPlayers, false);
+
             await Clients.OthersInGroup(roomCode).SendAsync("OnPlayerJoined", username, Context.ConnectionId);
         }
 
