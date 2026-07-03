@@ -13,7 +13,5 @@ namespace Rogue_Kie.BE.DataAccess.Models
 
         public int Damage { get; set; }
         public float FireRate { get; set; }
-        public int AmmoCapacity { get; set; }
-        public float ReloadTime { get; set; }
     }
 }
