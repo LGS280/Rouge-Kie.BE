@@ -16,10 +16,11 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
 
         public DbSet<RegistrationOtp> RegistrationOtps => Set<RegistrationOtp>();
 
-        public DbSet<EnemyConfig> EnemyConfigs => Set<EnemyConfig>();
-        public DbSet<WeaponConfig> WeaponConfigs => Set<WeaponConfig>();
-        public DbSet<LevelConfig> LevelConfigs => Set<LevelConfig>();
-        public DbSet<BuffConfig> BuffConfigs => Set<BuffConfig>();
+        public DbSet<EnemyConfig> EnemyConfigs { get; set; }
+        public DbSet<BulletConfig> BulletConfigs { get; set; }
+        public DbSet<WeaponConfig> WeaponConfigs { get; set; }
+        public DbSet<LevelConfig> LevelConfigs { get; set; }
+        public DbSet<BuffConfig> BuffConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -85,9 +86,11 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
             // Seed data
             modelBuilder.SeedRoles();
             modelBuilder.SeedUsers();
+            modelBuilder.SeedGameConfigs();
 
             // Game Configs mapping
             modelBuilder.Entity<EnemyConfig>().ToTable("EnemyConfigs");
+            modelBuilder.Entity<BulletConfig>().ToTable("BulletConfigs");
             modelBuilder.Entity<WeaponConfig>().ToTable("WeaponConfigs");
             modelBuilder.Entity<LevelConfig>().ToTable("LevelConfigs");
             modelBuilder.Entity<BuffConfig>().ToTable("BuffConfigs");

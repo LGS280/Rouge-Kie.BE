@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703143111_SeedGameConfigs")]
+    partial class SeedGameConfigs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,93 +95,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             IconPath = "regen_icon",
                             Rarity = "Epic",
                             Value = 10f
-                        });
-                });
-
-            modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.BulletConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BulletName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<float>("CritRate")
-                        .HasColumnType("real");
-
-                    b.Property<int>("Damage")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("FlightSpeed")
-                        .HasColumnType("real");
-
-                    b.Property<int>("PiercingCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PrefabName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("BulletConfigs", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BulletName = "Basic Bullet",
-                            CritRate = 0.1f,
-                            Damage = 20,
-                            FlightSpeed = 10f,
-                            PiercingCount = 0,
-                            PrefabName = "BasicBulletPrefab"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BulletName = "Buckshot",
-                            CritRate = 0.05f,
-                            Damage = 10,
-                            FlightSpeed = 15f,
-                            PiercingCount = 0,
-                            PrefabName = "BuckshotPrefab"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BulletName = "Sniper Round",
-                            CritRate = 0.5f,
-                            Damage = 150,
-                            FlightSpeed = 30f,
-                            PiercingCount = 3,
-                            PrefabName = "SniperRoundPrefab"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            BulletName = "Rifle Bullet",
-                            CritRate = 0.2f,
-                            Damage = 30,
-                            FlightSpeed = 20f,
-                            PiercingCount = 1,
-                            PrefabName = "RifleBulletPrefab"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            BulletName = "Sword Slash",
-                            CritRate = 0.3f,
-                            Damage = 40,
-                            FlightSpeed = 5f,
-                            PiercingCount = 99,
-                            PrefabName = "SwordSlashPrefab"
                         });
                 });
 
@@ -443,7 +359,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 1,
                             Email = "admin@rogue-kie.local",
-                            Password = "$2a$11$0MG13unkvurlI.aW1RPmw.gke3Qz19UCiT9uopk8EtDL8Dd/BgjOy",
+                            Password = "$2a$11$C24MGKhdP9qoPh3GdRNVvO4rUsY5REvy8J/S4C9qrYZ.7ZYf1Q3Si",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -451,7 +367,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 2,
                             Email = "guest@rogue-kie.local",
-                            Password = "$2a$11$arR5Rw/qD8Hw52l3.UjWn.PanHuBhZUacGiV8UUj7zXp2bBBhsOkG",
+                            Password = "$2a$11$98t77WPOjsGRv69nkgb7NeBJHJsiSJ2EzmvqaImddhoMWPa54Eqe2",
                             RoleId = 4,
                             Username = "guest"
                         });
@@ -465,19 +381,10 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BulletId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BulletsPerShot")
+                    b.Property<int>("Damage")
                         .HasColumnType("integer");
 
                     b.Property<float>("FireRate")
-                        .HasColumnType("real");
-
-                    b.Property<int>("ManaCost")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("SpreadAngle")
                         .HasColumnType("real");
 
                     b.Property<string>("WeaponName")
@@ -487,59 +394,42 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BulletId");
-
                     b.ToTable("WeaponConfigs", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            BulletId = 1,
-                            BulletsPerShot = 1,
+                            Damage = 20,
                             FireRate = 0.5f,
-                            ManaCost = 0,
-                            SpreadAngle = 2f,
                             WeaponName = "Pistol"
                         },
                         new
                         {
                             Id = 2,
-                            BulletId = 2,
-                            BulletsPerShot = 5,
+                            Damage = 50,
                             FireRate = 1.5f,
-                            ManaCost = 2,
-                            SpreadAngle = 15f,
                             WeaponName = "Shotgun"
                         },
                         new
                         {
                             Id = 3,
-                            BulletId = 3,
-                            BulletsPerShot = 1,
+                            Damage = 150,
                             FireRate = 2f,
-                            ManaCost = 5,
-                            SpreadAngle = 0f,
                             WeaponName = "Sniper"
                         },
                         new
                         {
                             Id = 4,
-                            BulletId = 4,
-                            BulletsPerShot = 1,
+                            Damage = 30,
                             FireRate = 0.2f,
-                            ManaCost = 1,
-                            SpreadAngle = 5f,
                             WeaponName = "Assault Rifle"
                         },
                         new
                         {
                             Id = 5,
-                            BulletId = 5,
-                            BulletsPerShot = 1,
+                            Damage = 40,
                             FireRate = 0.8f,
-                            ManaCost = 0,
-                            SpreadAngle = 30f,
                             WeaponName = "Sword"
                         });
                 });
@@ -552,17 +442,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.WeaponConfig", b =>
-                {
-                    b.HasOne("Rogue_Kie.BE.DataAccess.Models.BulletConfig", "BulletConfig")
-                        .WithMany()
-                        .HasForeignKey("BulletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BulletConfig");
                 });
 
             modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.Role", b =>

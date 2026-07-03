@@ -25,8 +25,11 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 {
                     Id = w.Id,
                     WeaponName = w.WeaponName,
-                    Damage = w.Damage,
-                    FireRate = w.FireRate
+                    FireRate = w.FireRate,
+                    ManaCost = w.ManaCost,
+                    BulletsPerShot = w.BulletsPerShot,
+                    SpreadAngle = w.SpreadAngle,
+                    BulletId = w.BulletId
                 })
                 .ToListAsync();
         }
@@ -40,8 +43,11 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             {
                 Id = w.Id,
                 WeaponName = w.WeaponName,
-                Damage = w.Damage,
-                FireRate = w.FireRate
+                FireRate = w.FireRate,
+                ManaCost = w.ManaCost,
+                BulletsPerShot = w.BulletsPerShot,
+                SpreadAngle = w.SpreadAngle,
+                BulletId = w.BulletId
             };
         }
 
@@ -50,8 +56,11 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             var entity = new WeaponConfig
             {
                 WeaponName = request.WeaponName,
-                Damage = request.Damage,
-                FireRate = request.FireRate
+                FireRate = request.FireRate,
+                ManaCost = request.ManaCost,
+                BulletsPerShot = request.BulletsPerShot,
+                SpreadAngle = request.SpreadAngle,
+                BulletId = request.BulletId
             };
 
             _context.WeaponConfigs.Add(entity);
@@ -66,8 +75,11 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             if (entity == null) return null;
 
             entity.WeaponName = request.WeaponName;
-            entity.Damage = request.Damage;
             entity.FireRate = request.FireRate;
+            entity.ManaCost = request.ManaCost;
+            entity.BulletsPerShot = request.BulletsPerShot;
+            entity.SpreadAngle = request.SpreadAngle;
+            entity.BulletId = request.BulletId;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);

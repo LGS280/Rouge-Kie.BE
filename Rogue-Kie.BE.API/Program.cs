@@ -39,6 +39,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Register GameConfig services
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IEnemyService, Rogue_Kie.BE.Business.Services.GameConfigs.EnemyService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IBulletService, Rogue_Kie.BE.Business.Services.GameConfigs.BulletService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IWeaponService, Rogue_Kie.BE.Business.Services.GameConfigs.WeaponService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ILevelService, Rogue_Kie.BE.Business.Services.GameConfigs.LevelService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IBuffService, Rogue_Kie.BE.Business.Services.GameConfigs.BuffService>();
