@@ -35,8 +35,11 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 {
                     Id = w.Id,
                     WeaponName = w.WeaponName,
-                    Damage = w.Damage,
-                    FireRate = w.FireRate
+                    FireRate = w.FireRate,
+                    ManaCost = w.ManaCost,
+                    BulletsPerShot = w.BulletsPerShot,
+                    SpreadAngle = w.SpreadAngle,
+                    BulletId = w.BulletId
                 })
                 .ToListAsync();
 
@@ -62,12 +65,26 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 })
                 .ToListAsync();
 
+            var bullets = await _context.BulletConfigs
+                .Select(b => new BulletResponse
+                {
+                    Id = b.Id,
+                    BulletName = b.BulletName,
+                    Damage = b.Damage,
+                    CritRate = b.CritRate,
+                    FlightSpeed = b.FlightSpeed,
+                    PiercingCount = b.PiercingCount,
+                    PrefabName = b.PrefabName
+                })
+                .ToListAsync();
+
             return new GameConfigsSyncResponse
             {
                 Enemies = enemies,
                 Weapons = weapons,
                 Levels = levels,
-                Buffs = buffs
+                Buffs = buffs,
+                Bullets = bullets
             };
         }
     }
