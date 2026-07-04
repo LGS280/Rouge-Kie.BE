@@ -60,11 +60,11 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<WeaponConfig>().HasData(
-                new WeaponConfig { Id = 1, WeaponName = "Pistol", FireRate = 0.5f, ManaCost = 0, BulletsPerShot = 1, SpreadAngle = 2.0f, BulletId = 1 },
-                new WeaponConfig { Id = 2, WeaponName = "Shotgun", FireRate = 1.5f, ManaCost = 2, BulletsPerShot = 5, SpreadAngle = 15.0f, BulletId = 2 },
-                new WeaponConfig { Id = 3, WeaponName = "Sniper", FireRate = 2.0f, ManaCost = 5, BulletsPerShot = 1, SpreadAngle = 0.0f, BulletId = 3 },
-                new WeaponConfig { Id = 4, WeaponName = "Assault Rifle", FireRate = 0.2f, ManaCost = 1, BulletsPerShot = 1, SpreadAngle = 5.0f, BulletId = 4 },
-                new WeaponConfig { Id = 5, WeaponName = "Sword", FireRate = 0.8f, ManaCost = 0, BulletsPerShot = 1, SpreadAngle = 30.0f, BulletId = 5 }
+                new WeaponConfig { Id = 1, WeaponName = "Pistol", PrefabName = "PistolPrefab", ShootSound = "pistol_shoot", ShootVolume = 1.0f, HandPositionX = 0.1f, HandPositionY = 0.05f, HandPositionZ = 0f, RecoilDistance = 0.1f, RecoilDuration = 0.05f, ReturnDuration = 0.1f, FireRate = 0.5f, ManaCost = 0, BulletsPerShot = 1, SpreadAngle = 2.0f, BulletId = 1 },
+                new WeaponConfig { Id = 2, WeaponName = "Shotgun", PrefabName = "ShotgunPrefab", ShootSound = "shotgun_shoot", ShootVolume = 1.2f, HandPositionX = 0.2f, HandPositionY = 0.1f, HandPositionZ = 0f, RecoilDistance = 0.3f, RecoilDuration = 0.1f, ReturnDuration = 0.2f, FireRate = 1.5f, ManaCost = 2, BulletsPerShot = 5, SpreadAngle = 15.0f, BulletId = 2 },
+                new WeaponConfig { Id = 3, WeaponName = "Sniper", PrefabName = "SniperPrefab", ShootSound = "sniper_shoot", ShootVolume = 1.5f, HandPositionX = 0.3f, HandPositionY = 0.15f, HandPositionZ = 0f, RecoilDistance = 0.5f, RecoilDuration = 0.15f, ReturnDuration = 0.3f, FireRate = 2.0f, ManaCost = 5, BulletsPerShot = 1, SpreadAngle = 0.0f, BulletId = 3 },
+                new WeaponConfig { Id = 4, WeaponName = "Assault Rifle", PrefabName = "RiflePrefab", ShootSound = "rifle_shoot", ShootVolume = 0.8f, HandPositionX = 0.2f, HandPositionY = 0.1f, HandPositionZ = 0f, RecoilDistance = 0.15f, RecoilDuration = 0.05f, ReturnDuration = 0.1f, FireRate = 0.2f, ManaCost = 1, BulletsPerShot = 1, SpreadAngle = 5.0f, BulletId = 4 },
+                new WeaponConfig { Id = 5, WeaponName = "Sword", PrefabName = "SwordPrefab", ShootSound = "sword_swing", ShootVolume = 1.0f, HandPositionX = 0.1f, HandPositionY = 0.2f, HandPositionZ = 0f, RecoilDistance = 0f, RecoilDuration = 0f, ReturnDuration = 0f, FireRate = 0.8f, ManaCost = 0, BulletsPerShot = 1, SpreadAngle = 30.0f, BulletId = 5 }
             );
 
             modelBuilder.Entity<LevelConfig>().HasData(

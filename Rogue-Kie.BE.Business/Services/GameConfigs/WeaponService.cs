@@ -25,10 +25,19 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 {
                     Id = w.Id,
                     WeaponName = w.WeaponName,
+                    PrefabName = w.PrefabName,
                     FireRate = w.FireRate,
                     ManaCost = w.ManaCost,
                     BulletsPerShot = w.BulletsPerShot,
                     SpreadAngle = w.SpreadAngle,
+                    ShootSound = w.ShootSound,
+                    ShootVolume = w.ShootVolume,
+                    HandPositionX = w.HandPositionX,
+                    HandPositionY = w.HandPositionY,
+                    HandPositionZ = w.HandPositionZ,
+                    RecoilDistance = w.RecoilDistance,
+                    RecoilDuration = w.RecoilDuration,
+                    ReturnDuration = w.ReturnDuration,
                     BulletId = w.BulletId
                 })
                 .ToListAsync();
@@ -43,10 +52,19 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             {
                 Id = w.Id,
                 WeaponName = w.WeaponName,
+                PrefabName = w.PrefabName,
                 FireRate = w.FireRate,
                 ManaCost = w.ManaCost,
                 BulletsPerShot = w.BulletsPerShot,
                 SpreadAngle = w.SpreadAngle,
+                ShootSound = w.ShootSound,
+                ShootVolume = w.ShootVolume,
+                HandPositionX = w.HandPositionX,
+                HandPositionY = w.HandPositionY,
+                HandPositionZ = w.HandPositionZ,
+                RecoilDistance = w.RecoilDistance,
+                RecoilDuration = w.RecoilDuration,
+                ReturnDuration = w.ReturnDuration,
                 BulletId = w.BulletId
             };
         }
@@ -56,10 +74,19 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             var entity = new WeaponConfig
             {
                 WeaponName = request.WeaponName,
+                PrefabName = request.PrefabName,
                 FireRate = request.FireRate,
                 ManaCost = request.ManaCost,
                 BulletsPerShot = request.BulletsPerShot,
                 SpreadAngle = request.SpreadAngle,
+                ShootSound = request.ShootSound,
+                ShootVolume = request.ShootVolume,
+                HandPositionX = request.HandPositionX,
+                HandPositionY = request.HandPositionY,
+                HandPositionZ = request.HandPositionZ,
+                RecoilDistance = request.RecoilDistance,
+                RecoilDuration = request.RecoilDuration,
+                ReturnDuration = request.ReturnDuration,
                 BulletId = request.BulletId
             };
 
@@ -75,10 +102,19 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             if (entity == null) return null;
 
             entity.WeaponName = request.WeaponName;
+            entity.PrefabName = request.PrefabName;
             entity.FireRate = request.FireRate;
             entity.ManaCost = request.ManaCost;
             entity.BulletsPerShot = request.BulletsPerShot;
             entity.SpreadAngle = request.SpreadAngle;
+            entity.ShootSound = request.ShootSound;
+            entity.ShootVolume = request.ShootVolume;
+            entity.HandPositionX = request.HandPositionX;
+            entity.HandPositionY = request.HandPositionY;
+            entity.HandPositionZ = request.HandPositionZ;
+            entity.RecoilDistance = request.RecoilDistance;
+            entity.RecoilDuration = request.RecoilDuration;
+            entity.ReturnDuration = request.ReturnDuration;
             entity.BulletId = request.BulletId;
 
             await _context.SaveChangesAsync();
