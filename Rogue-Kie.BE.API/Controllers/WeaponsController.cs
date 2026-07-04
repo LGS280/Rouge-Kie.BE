@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rogue_Kie.BE.Business.Services.GameConfigs;
 using Rogue_Kie.BE.Contracts.GameConfigs.Requests;
@@ -7,6 +8,7 @@ namespace Rogue_Kie.BE.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,Developer")]
     public class WeaponsController : ControllerBase
     {
         private readonly IWeaponService _weaponService;

@@ -145,6 +145,7 @@ namespace Rogue_Kie.BE.API.Controllers
                     Message = "Đăng nhập thành công.",
                     UserId = user.Id,
                     Username = user.Username,
+                    Role = user.Role?.Name ?? "User",
                     Token = token
                 });
             }
