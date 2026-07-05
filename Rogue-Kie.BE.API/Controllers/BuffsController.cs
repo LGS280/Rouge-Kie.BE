@@ -8,7 +8,6 @@ namespace Rogue_Kie.BE.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin,Developer")]
     public class BuffsController : ControllerBase
     {
         private readonly IBuffService _buffService;
@@ -19,7 +18,6 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var result = await _buffService.GetAllAsync();
@@ -27,7 +25,6 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _buffService.GetByIdAsync(id);
@@ -36,6 +33,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Create([FromBody] CreateBuffRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -44,6 +42,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateBuffRequest request)
         {
             if (id != request.Id) return BadRequest("ID mismatch");
@@ -56,6 +55,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _buffService.DeleteAsync(id);
@@ -65,3 +65,4 @@ namespace Rogue_Kie.BE.API.Controllers
         }
     }
 }
+
