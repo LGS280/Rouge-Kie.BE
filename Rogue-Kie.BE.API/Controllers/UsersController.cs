@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rogue_Kie.BE.Contracts.Users;
 using Rogue_Kie.BE.Business.Services.Users;
@@ -30,6 +31,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
             try
@@ -53,3 +55,5 @@ namespace Rogue_Kie.BE.API.Controllers
 
     }
 }
+
+

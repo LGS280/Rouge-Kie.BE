@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Rogue_Kie.BE.API.Controllers
 {
@@ -11,7 +11,7 @@ namespace Rogue_Kie.BE.API.Controllers
         {
             return Ok(new
             {
-                message = "Deploy success 🚀",
+                message = "Deploy success ??",
                 time = DateTime.UtcNow
             });
         }
