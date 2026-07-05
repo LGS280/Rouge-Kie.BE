@@ -22,6 +22,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<BulletResponse>>> GetAll()
         {
             var result = await _bulletService.GetAllBulletsAsync();
@@ -29,6 +30,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<BulletResponse>> GetById(int id)
         {
             var result = await _bulletService.GetBulletByIdAsync(id);
