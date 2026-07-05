@@ -19,6 +19,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var result = await _enemyService.GetAllAsync();
@@ -26,6 +27,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _enemyService.GetByIdAsync(id);
