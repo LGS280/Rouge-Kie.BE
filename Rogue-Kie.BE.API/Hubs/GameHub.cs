@@ -210,5 +210,11 @@ namespace Rogue_Kie.BE.API.Hubs
             await Clients.Group(roomId).SendAsync("OnEnemyDamaged", enemyId, damage);
         }
 
+        // Gửi tọa độ quái vật từ Host tới các Client khác
+        public async Task SyncEnemyPosition(string roomId, string enemyId, float x, float y)
+        {
+            await Clients.OthersInGroup(roomId).SendAsync("OnReceiveEnemyPosition", enemyId, x, y);
+        }
+
     }
 }
