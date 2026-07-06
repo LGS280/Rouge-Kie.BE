@@ -11,7 +11,6 @@ namespace Rogue_Kie.BE.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin,Developer")]
     public class BulletsController : ControllerBase
     {
         private readonly IBulletService _bulletService;
@@ -22,7 +21,6 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<BulletResponse>>> GetAll()
         {
             var result = await _bulletService.GetAllBulletsAsync();
@@ -30,7 +28,6 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<BulletResponse>> GetById(int id)
         {
             var result = await _bulletService.GetBulletByIdAsync(id);
@@ -39,6 +36,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<ActionResult<BulletResponse>> Create(CreateBulletRequest request)
         {
             var result = await _bulletService.CreateBulletAsync(request);
@@ -46,6 +44,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<ActionResult<BulletResponse>> Update(int id, UpdateBulletRequest request)
         {
             if (id != request.Id) return BadRequest("ID mismatch");
@@ -57,6 +56,7 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _bulletService.DeleteBulletAsync(id);
@@ -66,3 +66,5 @@ namespace Rogue_Kie.BE.API.Controllers
         }
     }
 }
+
+
