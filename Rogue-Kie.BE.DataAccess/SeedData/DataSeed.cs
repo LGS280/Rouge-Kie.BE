@@ -29,7 +29,9 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                     Username = "admin",
                     Email = "admin@rogue-kie.local",
                     Password = adminPassword,
-                    RoleId = 1 
+                    RoleId = 1,
+                    CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                    IsActive = true
                 },
                 new User 
                 { 
@@ -37,7 +39,9 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                     Username = "guest",
                     Email = "guest@rogue-kie.local",
                     Password = guestPassword,
-                    RoleId = 4 
+                    RoleId = 4,
+                    CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                    IsActive = true
                 }
             );
         }
@@ -45,10 +49,10 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
         public static void SeedGameConfigs(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<EnemyConfig>().HasData(
-                new EnemyConfig { Id = 1, EnemyName = "Slime", BaseHealth = 50, MoveSpeed = 2.0f, BaseDamage = 10, AttackSpeed = 1.5f, PrefabName = "SlimePrefab" },
-                new EnemyConfig { Id = 2, EnemyName = "Goblin", BaseHealth = 100, MoveSpeed = 3.5f, BaseDamage = 15, AttackSpeed = 1.2f, PrefabName = "GoblinPrefab" },
-                new EnemyConfig { Id = 3, EnemyName = "Orc", BaseHealth = 250, MoveSpeed = 1.5f, BaseDamage = 30, AttackSpeed = 2.0f, PrefabName = "OrcPrefab" },
-                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, BaseDamage = 100, AttackSpeed = 0.5f, PrefabName = "DragonPrefab" }
+                new EnemyConfig { Id = 1, EnemyName = "Slime", BaseHealth = 50, MoveSpeed = 2.0f, BaseDamage = 10, AttackSpeed = 1.5f, PrefabName = "SlimePrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 2, EnemyName = "Goblin", BaseHealth = 100, MoveSpeed = 3.5f, BaseDamage = 15, AttackSpeed = 1.2f, PrefabName = "GoblinPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 3, EnemyName = "Orc", BaseHealth = 250, MoveSpeed = 1.5f, BaseDamage = 30, AttackSpeed = 2.0f, PrefabName = "OrcPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, BaseDamage = 100, AttackSpeed = 0.5f, PrefabName = "DragonPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) }
             );
 
             modelBuilder.Entity<BulletConfig>().HasData(
@@ -68,17 +72,45 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<LevelConfig>().HasData(
-                new LevelConfig { Id = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f, MaxEnemiesToSpawn = 10 },
-                new LevelConfig { Id = 2, FloorNumber = 2, DifficultyMultiplier = 1.2f, MaxEnemiesToSpawn = 15 },
-                new LevelConfig { Id = 3, FloorNumber = 3, DifficultyMultiplier = 1.5f, MaxEnemiesToSpawn = 25 },
-                new LevelConfig { Id = 4, FloorNumber = 4, DifficultyMultiplier = 2.0f, MaxEnemiesToSpawn = 40 },
-                new LevelConfig { Id = 5, FloorNumber = 5, DifficultyMultiplier = 3.0f, MaxEnemiesToSpawn = 1 } // Boss stage
+                new LevelConfig { Id = 1, StageId = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f },
+                new LevelConfig { Id = 2, StageId = 1, FloorNumber = 2, DifficultyMultiplier = 1.2f },
+                new LevelConfig { Id = 3, StageId = 1, FloorNumber = 3, DifficultyMultiplier = 1.5f },
+                new LevelConfig { Id = 4, StageId = 1, FloorNumber = 4, DifficultyMultiplier = 2.0f },
+                new LevelConfig { Id = 5, StageId = 1, FloorNumber = 5, DifficultyMultiplier = 3.0f } // Boss stage
             );
 
             modelBuilder.Entity<BuffConfig>().HasData(
                 new BuffConfig { Id = 1, BuffName = "Speed Boost", Value = 1.5f, Description = "Increases movement speed.", IconPath = "speed_icon", BuffType = "StatModifier", Rarity = "Common" },
                 new BuffConfig { Id = 2, BuffName = "Damage Boost", Value = 2.0f, Description = "Increases damage dealt.", IconPath = "damage_icon", BuffType = "StatModifier", Rarity = "Rare" },
                 new BuffConfig { Id = 3, BuffName = "Health Regen", Value = 10.0f, Description = "Regenerates health over time.", IconPath = "regen_icon", BuffType = "Utility", Rarity = "Epic" }
+            );
+        }
+
+        public static void SeedCharacters(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Character>().HasData(
+                new Character
+                {
+                    CharacterId = 1,
+                    Name = "Kie Warrior",
+                    Description = "A brave warrior from Kie kingdom",
+                    BaseHealth = 100,
+                    BaseDamage = 15,
+                    SkillSet = "Slash, Shield",
+                    UnlockPrice = 0,
+                    CurrencyType = "Gold"
+                },
+                new Character
+                {
+                    CharacterId = 2,
+                    Name = "Kie Mage",
+                    Description = "A master of elements from Kie academy",
+                    BaseHealth = 80,
+                    BaseDamage = 25,
+                    SkillSet = "Fireball, Teleport",
+                    UnlockPrice = 100,
+                    CurrencyType = "Gold"
+                }
             );
         }
     }

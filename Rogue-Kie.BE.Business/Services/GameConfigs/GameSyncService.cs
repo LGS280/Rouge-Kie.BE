@@ -47,8 +47,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 .Select(l => new LevelResponse
                 {
                     Id = l.Id,
+                    StageId = l.StageId,
                     FloorNumber = l.FloorNumber,
-                    MaxEnemiesToSpawn = l.MaxEnemiesToSpawn,
                     DifficultyMultiplier = l.DifficultyMultiplier
                 })
                 .ToListAsync();

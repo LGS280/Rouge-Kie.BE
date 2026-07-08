@@ -3,6 +3,8 @@ using Rogue_Kie.BE.Business.Services.Auth;
 using Rogue_Kie.BE.Business.Services.Email;
 using Rogue_Kie.BE.Business.Services.Roles;
 using Rogue_Kie.BE.Business.Services.Users;
+using Rogue_Kie.BE.Business.Services.Profile;
+using Rogue_Kie.BE.Business.Services.RunHistoryService;
 using Rogue_Kie.BE.DataAccess.DBContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -36,6 +38,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IRunHistoryService, RunHistoryService>();
 
 // Register GameConfig services
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IEnemyService, Rogue_Kie.BE.Business.Services.GameConfigs.EnemyService>();
