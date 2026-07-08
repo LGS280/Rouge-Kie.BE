@@ -51,9 +51,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return MapToResponse(bullet);
         }
 
-        public async Task<BulletResponse?> UpdateBulletAsync(UpdateBulletRequest request)
+        public async Task<BulletResponse?> UpdateBulletAsync(int id, UpdateBulletRequest request)
         {
-            var bullet = await _context.BulletConfigs.FindAsync(request.Id);
+            var bullet = await _context.BulletConfigs.FindAsync(id);
             if (bullet == null) return null;
 
             bullet.BulletName = request.BulletName;

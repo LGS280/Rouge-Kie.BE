@@ -42,7 +42,5 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
 
     public class UpdateWeaponRequest : CreateWeaponRequest
     {
-        [Required]
-        public int Id { get; set; }
     }
 }

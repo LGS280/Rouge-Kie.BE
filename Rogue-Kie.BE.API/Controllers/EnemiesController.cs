@@ -45,12 +45,11 @@ namespace Rogue_Kie.BE.API.Controllers
         [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateEnemyRequest request)
         {
-            if (id != request.Id) return BadRequest("ID mismatch");
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var result = await _enemyService.UpdateAsync(request);
+ 
+            var result = await _enemyService.UpdateAsync(id, request);
             if (result == null) return NotFound();
-
+ 
             return Ok(result);
         }
 

@@ -60,9 +60,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return await GetByIdAsync(entity.Id) ?? throw new System.Exception("Failed to retrieve created entity");
         }
 
-        public async Task<LevelResponse?> UpdateAsync(UpdateLevelRequest request)
+        public async Task<LevelResponse?> UpdateAsync(int id, UpdateLevelRequest request)
         {
-            var entity = await _context.LevelConfigs.FindAsync(request.Id);
+            var entity = await _context.LevelConfigs.FindAsync(id);
             if (entity == null) return null;
 
             entity.FloorNumber = request.FloorNumber;

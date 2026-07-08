@@ -10,7 +10,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<List<BuffResponse>> GetAllAsync();
         Task<BuffResponse?> GetByIdAsync(int id);
         Task<BuffResponse> CreateAsync(CreateBuffRequest request);
-        Task<BuffResponse?> UpdateAsync(UpdateBuffRequest request);
+        Task<BuffResponse?> UpdateAsync(int id, UpdateBuffRequest request);
         Task<bool> DeleteAsync(int id);
     }
 }

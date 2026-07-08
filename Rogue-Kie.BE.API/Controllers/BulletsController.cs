@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rogue_Kie.BE.Business.Services.GameConfigs;
 using Rogue_Kie.BE.Contracts.GameConfigs.Requests;
@@ -47,11 +46,9 @@ namespace Rogue_Kie.BE.API.Controllers
         [Authorize(Roles = "Admin,Developer")]
         public async Task<ActionResult<BulletResponse>> Update(int id, UpdateBulletRequest request)
         {
-            if (id != request.Id) return BadRequest("ID mismatch");
-
-            var result = await _bulletService.UpdateBulletAsync(request);
+            var result = await _bulletService.UpdateBulletAsync(id, request);
             if (result == null) return NotFound();
-
+ 
             return Ok(result);
         }
 
