@@ -148,5 +148,66 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         {
             return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         }
+
+        public async Task<RefreshToken> GenerateRefreshTokenAsync(int userId)
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+            }
+            var tokenString = Convert.ToBase64String(randomNumber);
+
+            var refreshToken = new RefreshToken
+            {
+                UserId = userId,
+                Token = tokenString,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                Revoked = false
+            };
+
+            _context.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
+
+            return refreshToken;
+        }
+
+        public async Task<User?> VerifyRefreshTokenAsync(string token)
+        {
+            var storedToken = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .ThenInclude(u => u.Role)
+                .FirstOrDefaultAsync(rt => rt.Token == token && !rt.Revoked);
+
+            if (storedToken == null || storedToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            // Thu hồi token cũ (Xoay vòng Refresh Token)
+            storedToken.Revoked = true;
+            _context.RefreshTokens.Update(storedToken);
+            await _context.SaveChangesAsync();
+
+            return storedToken.User;
+        }
+
+        public async Task<bool> RevokeRefreshTokenAsync(string token)
+        {
+            var storedToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == token && !rt.Revoked);
+
+            if (storedToken == null)
+            {
+                return false;
+            }
+
+            storedToken.Revoked = true;
+            _context.RefreshTokens.Update(storedToken);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -90,6 +90,7 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
             modelBuilder.SeedRoles();
             modelBuilder.SeedUsers();
             modelBuilder.SeedGameConfigs();
+            modelBuilder.SeedCharacters();
 
             // Game Configs mapping
             modelBuilder.Entity<EnemyConfig>().ToTable("EnemyConfigs");

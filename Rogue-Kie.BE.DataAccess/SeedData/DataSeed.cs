@@ -85,5 +85,33 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                 new BuffConfig { Id = 3, BuffName = "Health Regen", Value = 10.0f, Description = "Regenerates health over time.", IconPath = "regen_icon", BuffType = "Utility", Rarity = "Epic" }
             );
         }
+
+        public static void SeedCharacters(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Character>().HasData(
+                new Character
+                {
+                    CharacterId = 1,
+                    Name = "Kie Warrior",
+                    Description = "A brave warrior from Kie kingdom",
+                    BaseHealth = 100,
+                    BaseDamage = 15,
+                    SkillSet = "Slash, Shield",
+                    UnlockPrice = 0,
+                    CurrencyType = "Gold"
+                },
+                new Character
+                {
+                    CharacterId = 2,
+                    Name = "Kie Mage",
+                    Description = "A master of elements from Kie academy",
+                    BaseHealth = 80,
+                    BaseDamage = 25,
+                    SkillSet = "Fireball, Teleport",
+                    UnlockPrice = 100,
+                    CurrencyType = "Gold"
+                }
+            );
+        }
     }
 }
