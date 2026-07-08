@@ -14,7 +14,6 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
 
         public DbSet<User> Users => Set<User>();
 
-        public DbSet<RegistrationOtp> RegistrationOtps => Set<RegistrationOtp>();
 
         public DbSet<EnemyConfig> EnemyConfigs { get; set; }
         public DbSet<BulletConfig> BulletConfigs { get; set; }
@@ -68,20 +67,6 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            modelBuilder.Entity<RegistrationOtp>(entity =>
-            {
-                entity.ToTable("RegistrationOtps");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => x.Email);
-
-                entity.Property(x => x.Email)
-                    .IsRequired()
-                    .HasMaxLength(255);
-
-                entity.Property(x => x.OtpCode)
-                    .IsRequired()
-                    .HasMaxLength(6);
-            });
 
             // Seed data
             modelBuilder.SeedRoles();
