@@ -26,7 +26,5 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
 
     public class UpdateBuffRequest : CreateBuffRequest
     {
-        [Required]
-        public int Id { get; set; }
     }
 }

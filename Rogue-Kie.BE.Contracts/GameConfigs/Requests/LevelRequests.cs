@@ -16,7 +16,5 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
 
     public class UpdateLevelRequest : CreateLevelRequest
     {
-        [Required]
-        public int Id { get; set; }
     }
 }

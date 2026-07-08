@@ -10,7 +10,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<IEnumerable<BulletResponse>> GetAllBulletsAsync();
         Task<BulletResponse?> GetBulletByIdAsync(int id);
         Task<BulletResponse> CreateBulletAsync(CreateBulletRequest request);
-        Task<BulletResponse?> UpdateBulletAsync(UpdateBulletRequest request);
+        Task<BulletResponse?> UpdateBulletAsync(int id, UpdateBulletRequest request);
         Task<bool> DeleteBulletAsync(int id);
     }
 }

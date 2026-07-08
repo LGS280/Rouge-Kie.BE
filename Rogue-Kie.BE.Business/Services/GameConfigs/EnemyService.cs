@@ -69,9 +69,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return await GetByIdAsync(entity.Id) ?? throw new System.Exception("Failed to retrieve created entity");
         }
 
-        public async Task<EnemyResponse?> UpdateAsync(UpdateEnemyRequest request)
+        public async Task<EnemyResponse?> UpdateAsync(int id, UpdateEnemyRequest request)
         {
-            var entity = await _context.EnemyConfigs.FindAsync(request.Id);
+            var entity = await _context.EnemyConfigs.FindAsync(id);
             if (entity == null) return null;
 
             entity.EnemyName = request.EnemyName;

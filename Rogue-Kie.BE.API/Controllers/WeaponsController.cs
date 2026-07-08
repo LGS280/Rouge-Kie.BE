@@ -45,10 +45,9 @@ namespace Rogue_Kie.BE.API.Controllers
         [Authorize(Roles = "Admin,Developer")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateWeaponRequest request)
         {
-            if (id != request.Id) return BadRequest("ID mismatch");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _weaponService.UpdateAsync(request);
+            var result = await _weaponService.UpdateAsync(id, request);
             if (result == null) return NotFound();
 
             return Ok(result);

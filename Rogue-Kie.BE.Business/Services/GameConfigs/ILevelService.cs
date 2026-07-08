@@ -10,7 +10,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<List<LevelResponse>> GetAllAsync();
         Task<LevelResponse?> GetByIdAsync(int id);
         Task<LevelResponse> CreateAsync(CreateLevelRequest request);
-        Task<LevelResponse?> UpdateAsync(UpdateLevelRequest request);
+        Task<LevelResponse?> UpdateAsync(int id, UpdateLevelRequest request);
         Task<bool> DeleteAsync(int id);
     }
 }
