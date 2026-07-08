@@ -10,7 +10,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<List<EnemyResponse>> GetAllAsync();
         Task<EnemyResponse?> GetByIdAsync(int id);
         Task<EnemyResponse> CreateAsync(CreateEnemyRequest request);
-        Task<EnemyResponse?> UpdateAsync(UpdateEnemyRequest request);
+        Task<EnemyResponse?> UpdateAsync(int id, UpdateEnemyRequest request);
         Task<bool> DeleteAsync(int id);
     }
 }

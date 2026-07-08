@@ -96,9 +96,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return await GetByIdAsync(entity.Id) ?? throw new System.Exception("Failed to retrieve created entity");
         }
 
-        public async Task<WeaponResponse?> UpdateAsync(UpdateWeaponRequest request)
+        public async Task<WeaponResponse?> UpdateAsync(int id, UpdateWeaponRequest request)
         {
-            var entity = await _context.WeaponConfigs.FindAsync(request.Id);
+            var entity = await _context.WeaponConfigs.FindAsync(id);
             if (entity == null) return null;
 
             entity.WeaponName = request.WeaponName;
