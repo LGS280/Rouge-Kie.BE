@@ -138,6 +138,7 @@ namespace Rogue_Kie.BE.API.Controllers
 
                 // Tạo JWT để Unity lưu vào PlayerPrefs và gửi kèm Authorization cho API cần đăng nhập.
                 var token = _tokenService.GenerateToken(user);
+                var refreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
 
                 return Ok(new LoginResponse
                 {
@@ -146,7 +147,8 @@ namespace Rogue_Kie.BE.API.Controllers
                     UserId = user.Id,
                     Username = user.Username,
                     Role = user.Role?.Name ?? "User",
-                    Token = token
+                    Token = token,
+                    RefreshToken = refreshTokenObj.Token
                 });
             }
             catch (ArgumentException ex)
@@ -165,6 +167,48 @@ namespace Rogue_Kie.BE.API.Controllers
                     Message = ex.Message
                 });
             }
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return BadRequest(new { Message = "Refresh Token không được trống." });
+            }
+
+            var user = await _authService.VerifyRefreshTokenAsync(request.RefreshToken);
+            if (user == null)
+            {
+                return Unauthorized(new { Message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+            }
+
+            var newAccessToken = _tokenService.GenerateToken(user);
+            var newRefreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
+
+            return Ok(new TokenResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshTokenObj.Token,
+                ExpiresAt = newRefreshTokenObj.ExpiresAt
+            });
+        }
+
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] RefreshTokenRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return BadRequest(new { Message = "Refresh Token không được trống." });
+            }
+
+            var success = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
+            if (!success)
+            {
+                return BadRequest(new { Message = "Không tìm thấy token hoặc token đã bị thu hồi trước đó." });
+            }
+
+            return Ok(new { Message = "Thu hồi Refresh Token thành công." });
         }
     }
 }

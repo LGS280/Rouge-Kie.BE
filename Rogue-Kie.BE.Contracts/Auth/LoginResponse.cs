@@ -13,5 +13,7 @@ namespace Rogue_Kie.BE.Contracts.Auth
         public string? Role { get; set; }
 
         public string? Token { get; set; }
+
+        public string? RefreshToken { get; set; }
     }
 }
