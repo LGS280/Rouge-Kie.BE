@@ -27,7 +27,5 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
 
     public class UpdateEnemyRequest : CreateEnemyRequest
     {
-        [Required]
-        public int Id { get; set; }
     }
 }

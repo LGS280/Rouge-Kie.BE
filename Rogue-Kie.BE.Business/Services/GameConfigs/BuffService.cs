@@ -66,9 +66,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return await GetByIdAsync(entity.Id) ?? throw new System.Exception("Failed to retrieve created entity");
         }
 
-        public async Task<BuffResponse?> UpdateAsync(UpdateBuffRequest request)
+        public async Task<BuffResponse?> UpdateAsync(int id, UpdateBuffRequest request)
         {
-            var entity = await _context.BuffConfigs.FindAsync(request.Id);
+            var entity = await _context.BuffConfigs.FindAsync(id);
             if (entity == null) return null;
 
             entity.BuffName = request.BuffName;
