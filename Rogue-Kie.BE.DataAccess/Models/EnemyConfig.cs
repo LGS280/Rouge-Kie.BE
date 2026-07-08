@@ -19,5 +19,7 @@ namespace Rogue_Kie.BE.DataAccess.Models
         [Required]
         [MaxLength(100)]
         public string PrefabName { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

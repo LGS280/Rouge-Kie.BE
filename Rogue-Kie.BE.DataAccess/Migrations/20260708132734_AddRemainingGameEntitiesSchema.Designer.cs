@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708132734_AddRemainingGameEntitiesSchema")]
+    partial class AddRemainingGameEntitiesSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -219,30 +222,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                     b.HasKey("CharacterId");
 
                     b.ToTable("Characters", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            CharacterId = 1,
-                            BaseDamage = 15,
-                            BaseHealth = 100,
-                            CurrencyType = "Gold",
-                            Description = "A brave warrior from Kie kingdom",
-                            Name = "Kie Warrior",
-                            SkillSet = "Slash, Shield",
-                            UnlockPrice = 0
-                        },
-                        new
-                        {
-                            CharacterId = 2,
-                            BaseDamage = 25,
-                            BaseHealth = 80,
-                            CurrencyType = "Gold",
-                            Description = "A master of elements from Kie academy",
-                            Name = "Kie Mage",
-                            SkillSet = "Fireball, Teleport",
-                            UnlockPrice = 100
-                        });
                 });
 
             modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.CosmeticItem", b =>
@@ -1005,7 +984,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$xtAy4.amGYE6oOyHFicY7ed64K7smJ93PWey/d2oJYhuHFiGFVnKu",
+                            Password = "$2a$11$oP3ntfWC5ssrKw0CoMLYY.vEzXg7OaC1mbsgm82zSUNHd97gW5W2K",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -1015,7 +994,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "guest@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$MU3XJAz0d4oguiUzCRerz.X0Fg0qrrb4XRy6VuQUYc.6L8V0ShpO6",
+                            Password = "$2a$11$ZeBqto0HyffwXpr.H8eKPeE1YNS6UIZnjW/.f7xC8R4OH6BFJ7TKy",
                             RoleId = 4,
                             Username = "guest"
                         });

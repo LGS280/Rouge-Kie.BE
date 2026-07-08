@@ -24,8 +24,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 .Select(l => new LevelResponse
                 {
                     Id = l.Id,
+                    StageId = l.StageId,
                     FloorNumber = l.FloorNumber,
-                    MaxEnemiesToSpawn = l.MaxEnemiesToSpawn,
                     DifficultyMultiplier = l.DifficultyMultiplier
                 })
                 .ToListAsync();
@@ -39,8 +39,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             return new LevelResponse
             {
                 Id = l.Id,
+                StageId = l.StageId,
                 FloorNumber = l.FloorNumber,
-                MaxEnemiesToSpawn = l.MaxEnemiesToSpawn,
                 DifficultyMultiplier = l.DifficultyMultiplier
             };
         }
@@ -49,8 +49,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         {
             var entity = new LevelConfig
             {
+                StageId = request.StageId,
                 FloorNumber = request.FloorNumber,
-                MaxEnemiesToSpawn = request.MaxEnemiesToSpawn,
                 DifficultyMultiplier = request.DifficultyMultiplier
             };
 
@@ -65,8 +65,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             var entity = await _context.LevelConfigs.FindAsync(id);
             if (entity == null) return null;
 
+            entity.StageId = request.StageId;
             entity.FloorNumber = request.FloorNumber;
-            entity.MaxEnemiesToSpawn = request.MaxEnemiesToSpawn;
             entity.DifficultyMultiplier = request.DifficultyMultiplier;
 
             await _context.SaveChangesAsync();
