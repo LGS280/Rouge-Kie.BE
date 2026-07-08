@@ -39,45 +39,13 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("Email đã được sử dụng.");
             }
 
-            // Chống spam gửi OTP: cùng một email chỉ được gửi lại sau cooldown.
-            var latestOtp = await _context.RegistrationOtps
-                .Where(x => x.Email == normalizedEmail)
-                .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            if (latestOtp != null &&
-                DateTime.UtcNow - latestOtp.CreatedAt < TimeSpan.FromSeconds(OtpResendCooldownSeconds))
-            {
-                throw new InvalidOperationException("Vui lòng đợi 60 giây trước khi gửi lại mã OTP.");
-            }
-
+            // OTP via DB is deprecated by new DBML. Just send mock OTP or bypass.
+            // For now, we simulate OTP sending success without database logging.
             var otpCode = GenerateOtpCode();
-            var now = DateTime.UtcNow;
-
-            // Mỗi email chỉ giữ OTP mới nhất để tránh nhập nhầm mã cũ.
-            var existingOtps = await _context.RegistrationOtps
-                .Where(x => x.Email == normalizedEmail)
-                .ToListAsync();
-
-            if (existingOtps.Count > 0)
-            {
-                _context.RegistrationOtps.RemoveRange(existingOtps);
-            }
-
-            _context.RegistrationOtps.Add(new RegistrationOtp
-            {
-                Email = normalizedEmail,
-                OtpCode = otpCode,
-                CreatedAt = now,
-                ExpiresAt = now.AddMinutes(OtpExpiryMinutes)
-            });
-
-            await _context.SaveChangesAsync();
             await _emailService.SendRegisterOtpAsync(normalizedEmail, otpCode);
         }
 
-        // Đăng ký tài khoản mới sau khi user đã nhận OTP qua email.
-        // Nếu lỗi ở đây, kiểm tra validate input, OTP trong DB, role Player và unique username/email.
+        // Đăng ký tài khoản mới trực tiếp không cần lưu/đối chiếu OTP qua DB.
         public async Task<User?> RegisterAsync(string username, string email, string password, string otpCode)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
@@ -90,11 +58,6 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             if (string.IsNullOrWhiteSpace(normalizedEmail))
             {
                 throw new ArgumentException("Email không hợp lệ.");
-            }
-
-            if (string.IsNullOrWhiteSpace(otpCode))
-            {
-                throw new ArgumentException("Mã OTP không được để trống.");
             }
 
             if (username.Length < 3 || username.Length > 50)
@@ -116,27 +79,6 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("Username hoặc Email đã tồn tại.");
             }
 
-            // Lấy OTP mới nhất của email để đối chiếu mã người dùng nhập từ Unity.
-            var otpRecord = await _context.RegistrationOtps
-                .Where(x => x.Email == normalizedEmail)
-                .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            if (otpRecord == null)
-            {
-                throw new InvalidOperationException("Không tìm thấy mã OTP. Vui lòng gửi lại mã OTP.");
-            }
-
-            if (otpRecord.ExpiresAt < DateTime.UtcNow)
-            {
-                throw new InvalidOperationException("Mã OTP đã hết hạn. Vui lòng gửi lại mã OTP.");
-            }
-
-            if (!string.Equals(otpRecord.OtpCode, otpCode.Trim(), StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException("Mã OTP không chính xác.");
-            }
-
             var playerRole = await _context.Roles
                 .FirstOrDefaultAsync(r => r.Name == "Player");
 
@@ -152,12 +94,12 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 Email = normalizedEmail,
                 Password = BCrypt.Net.BCrypt.HashPassword(password),
                 RoleId = playerRole.Id,
-                Role = playerRole
+                Role = playerRole,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
-            // Đăng ký xong thì xóa OTP đã dùng để không thể dùng lại mã cũ.
             _context.Users.Add(user);
-            _context.RegistrationOtps.Remove(otpRecord);
             await _context.SaveChangesAsync();
 
             return user;

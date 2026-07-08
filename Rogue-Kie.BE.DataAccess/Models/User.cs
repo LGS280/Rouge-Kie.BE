@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Rogue_Kie.BE.DataAccess.Models
@@ -21,6 +21,10 @@ namespace Rogue_Kie.BE.DataAccess.Models
         [Required]
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLogin { get; set; }
+        public bool IsActive { get; set; } = true;
 
         [ForeignKey(nameof(Role))]
         public int? RoleId { get; set; }
