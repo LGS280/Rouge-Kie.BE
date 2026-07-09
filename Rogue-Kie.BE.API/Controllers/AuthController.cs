@@ -169,6 +169,58 @@ namespace Rogue_Kie.BE.API.Controllers
             }
         }
 
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = await _authService.LoginWithGoogleAsync(request.IdToken);
+                if (user == null)
+                {
+                    return Unauthorized(new LoginResponse
+                    {
+                        Success = false,
+                        Message = "Dang nhap Google that bai."
+                    });
+                }
+
+                var token = _tokenService.GenerateToken(user);
+                var refreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
+
+                return Ok(new LoginResponse
+                {
+                    Success = true,
+                    Message = "Dang nhap Google thanh cong.",
+                    UserId = user.Id,
+                    Username = user.Username,
+                    Role = user.Role?.Name ?? "User",
+                    Token = token,
+                    RefreshToken = refreshTokenObj.Token
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new LoginResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
         {
