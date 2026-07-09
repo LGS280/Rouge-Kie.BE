@@ -48,6 +48,9 @@ builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IWeaponSer
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ILevelService, Rogue_Kie.BE.Business.Services.GameConfigs.LevelService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IBuffService, Rogue_Kie.BE.Business.Services.GameConfigs.BuffService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IGameSyncService, Rogue_Kie.BE.Business.Services.GameConfigs.GameSyncService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICharacterService, Rogue_Kie.BE.Business.Services.GameConfigs.CharacterService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICosmeticService, Rogue_Kie.BE.Business.Services.GameConfigs.CosmeticService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IShopItemService, Rogue_Kie.BE.Business.Services.GameConfigs.ShopItemService>();
 
 // Add SignalR
 builder.Services.AddSignalR();
