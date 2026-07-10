@@ -1,8 +1,11 @@
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Rogue_Kie.BE.Business.Services.Email;
 using Rogue_Kie.BE.DataAccess.DBContext;
 using Rogue_Kie.BE.DataAccess.Models;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Rogue_Kie.BE.Business.Services.Auth
 {
@@ -13,11 +16,13 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
-        public AuthService(AppDbContext context, IEmailService emailService)
+        public AuthService(AppDbContext context, IEmailService emailService, IConfiguration config)
         {
             _context = context;
             _emailService = emailService;
+            _config = config;
         }
 
         // Tạo và gửi OTP cho email đăng ký.
@@ -107,6 +112,81 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
         // Đăng nhập bằng username hoặc email.
         // Unity vẫn gửi field "username", nhưng giá trị có thể là username hoặc email.
+        // Dang nhap bang Google/Gmail. Unity gui Google ID token len backend de verify.
+        public async Task<User?> LoginWithGoogleAsync(string idToken)
+        {
+            if (string.IsNullOrWhiteSpace(idToken))
+            {
+                throw new ArgumentException("Google ID token khong duoc de trong.");
+            }
+
+            var clientIds = GetGoogleClientIds();
+            if (clientIds.Count == 0)
+            {
+                throw new InvalidOperationException("GoogleAuth:ClientId hoac GoogleAuth:ClientIds chua duoc cau hinh.");
+            }
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken.Trim(), new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = clientIds
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                throw new InvalidOperationException("Google ID token khong hop le.");
+            }
+
+            if (!payload.EmailVerified)
+            {
+                throw new InvalidOperationException("Email Google chua duoc xac thuc.");
+            }
+
+            var normalizedEmail = NormalizeEmail(payload.Email);
+            if (string.IsNullOrWhiteSpace(normalizedEmail))
+            {
+                throw new InvalidOperationException("Google token khong co email hop le.");
+            }
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+
+            if (user != null)
+            {
+                user.LastLogin = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return user;
+            }
+
+            var playerRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Name == "Player");
+
+            if (playerRole == null)
+            {
+                throw new InvalidOperationException("Role Player khong ton tai.");
+            }
+
+            user = new User
+            {
+                Username = await GenerateUniqueGoogleUsernameAsync(payload.Name, normalizedEmail),
+                Email = normalizedEmail,
+                Password = BCrypt.Net.BCrypt.HashPassword(Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))),
+                RoleId = playerRole.Id,
+                Role = playerRole,
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+
         public async Task<User?> LoginAsync(string usernameOrEmail, string password)
         {
             if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
@@ -147,6 +227,72 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         private static string GenerateOtpCode()
         {
             return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        }
+
+        private List<string> GetGoogleClientIds()
+        {
+            var clientIds = _config.GetSection("GoogleAuth:ClientIds")
+                .GetChildren()
+                .Select(x => x.Value)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x!.Trim())
+                .ToList();
+
+            var singleClientId = _config["GoogleAuth:ClientId"];
+            if (!string.IsNullOrWhiteSpace(singleClientId))
+            {
+                clientIds.Add(singleClientId.Trim());
+            }
+
+            return clientIds.Distinct(StringComparer.Ordinal).ToList();
+        }
+
+        private async Task<string> GenerateUniqueGoogleUsernameAsync(string? displayName, string email)
+        {
+            var source = string.IsNullOrWhiteSpace(displayName)
+                ? email.Split('@')[0]
+                : displayName;
+
+            var baseUsername = SanitizeUsername(source);
+            var username = baseUsername;
+            var suffix = 1;
+
+            while (await _context.Users.AnyAsync(u => u.Username == username))
+            {
+                var suffixText = suffix.ToString();
+                var maxBaseLength = Math.Max(1, 50 - suffixText.Length);
+                username = baseUsername.Length > maxBaseLength
+                    ? baseUsername[..maxBaseLength] + suffixText
+                    : baseUsername + suffixText;
+                suffix++;
+            }
+
+            return username;
+        }
+
+        private static string SanitizeUsername(string value)
+        {
+            var builder = new StringBuilder();
+
+            foreach (var c in value.Trim())
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    builder.Append(c);
+                }
+                else if (c == '_' || c == '-' || c == '.')
+                {
+                    builder.Append(c);
+                }
+            }
+
+            var username = builder.ToString();
+            if (username.Length < 3)
+            {
+                username = "google_user";
+            }
+
+            return username.Length > 50 ? username[..50] : username;
         }
 
         public async Task<RefreshToken> GenerateRefreshTokenAsync(int userId)

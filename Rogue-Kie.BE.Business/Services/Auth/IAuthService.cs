@@ -11,6 +11,8 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
         Task<User?> LoginAsync(string usernameOrEmail, string password);
 
+        Task<User?> LoginWithGoogleAsync(string idToken);
+
         Task<User?> VerifyRefreshTokenAsync(string token);
 
         Task<bool> RevokeRefreshTokenAsync(string token);
