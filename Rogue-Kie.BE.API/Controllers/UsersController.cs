@@ -133,6 +133,23 @@ namespace Rogue_Kie.BE.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        // Hard delete: remove row permanently (only allowed when IsActive == false)
+        [HttpDelete("{id:int}/hard")]
+        [Authorize(Roles = "Admin,Developer")]
+        public async Task<IActionResult> HardDeleteUser([FromRoute] int id)
+        {
+            try
+            {
+                var deleted = await _userService.HardDeleteUserAsync(id);
+                if (!deleted) return Conflict("User đang active, không thể xóa cứng.");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
 
