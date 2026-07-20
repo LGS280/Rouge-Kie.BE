@@ -122,6 +122,21 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// Tự động chạy Migration khi ứng dụng khởi động để đồng bộ DB trên Cloud / Azure
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+        Console.WriteLine("[Database] Tự động cập nhật Migrations database thành công.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Database Error] Lỗi tự động chạy migrations: {ex.Message}");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
