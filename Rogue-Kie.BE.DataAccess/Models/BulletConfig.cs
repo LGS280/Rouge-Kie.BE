@@ -15,6 +15,7 @@ namespace Rogue_Kie.BE.DataAccess.Models
 
         public int Damage { get; set; }
         public float CritRate { get; set; }
+        public float CritMultiplier { get; set; } = 1.5f;
         public float FlightSpeed { get; set; }
         public int PiercingCount { get; set; }
 

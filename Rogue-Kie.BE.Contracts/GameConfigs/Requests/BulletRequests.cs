@@ -15,6 +15,9 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
         public float CritRate { get; set; }
 
         [Required]
+        public float CritMultiplier { get; set; }
+
+        [Required]
         public float FlightSpeed { get; set; }
 
         [Required]

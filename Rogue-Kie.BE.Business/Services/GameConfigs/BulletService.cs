@@ -40,6 +40,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 BulletName = request.BulletName,
                 Damage = request.Damage,
                 CritRate = request.CritRate,
+                CritMultiplier = request.CritMultiplier,
                 FlightSpeed = request.FlightSpeed,
                 PiercingCount = request.PiercingCount,
                 PrefabName = request.PrefabName
@@ -59,6 +60,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             bullet.BulletName = request.BulletName;
             bullet.Damage = request.Damage;
             bullet.CritRate = request.CritRate;
+            bullet.CritMultiplier = request.CritMultiplier;
             bullet.FlightSpeed = request.FlightSpeed;
             bullet.PiercingCount = request.PiercingCount;
             bullet.PrefabName = request.PrefabName;
@@ -87,6 +89,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 BulletName = config.BulletName,
                 Damage = config.Damage,
                 CritRate = config.CritRate,
+                CritMultiplier = config.CritMultiplier,
                 FlightSpeed = config.FlightSpeed,
                 PiercingCount = config.PiercingCount,
                 PrefabName = config.PrefabName

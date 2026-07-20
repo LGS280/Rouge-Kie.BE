@@ -56,11 +56,11 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<BulletConfig>().HasData(
-                new BulletConfig { Id = 1, BulletName = "Basic Bullet", Damage = 20, CritRate = 0.1f, FlightSpeed = 10.0f, PiercingCount = 0, PrefabName = "BasicBulletPrefab" },
-                new BulletConfig { Id = 2, BulletName = "Buckshot", Damage = 10, CritRate = 0.05f, FlightSpeed = 15.0f, PiercingCount = 0, PrefabName = "BuckshotPrefab" },
-                new BulletConfig { Id = 3, BulletName = "Sniper Round", Damage = 150, CritRate = 0.5f, FlightSpeed = 30.0f, PiercingCount = 3, PrefabName = "SniperRoundPrefab" },
-                new BulletConfig { Id = 4, BulletName = "Rifle Bullet", Damage = 30, CritRate = 0.2f, FlightSpeed = 20.0f, PiercingCount = 1, PrefabName = "RifleBulletPrefab" },
-                new BulletConfig { Id = 5, BulletName = "Sword Slash", Damage = 40, CritRate = 0.3f, FlightSpeed = 5.0f, PiercingCount = 99, PrefabName = "SwordSlashPrefab" }
+                new BulletConfig { Id = 1, BulletName = "Basic Bullet", Damage = 20, CritRate = 0.1f, CritMultiplier = 1.5f, FlightSpeed = 10.0f, PiercingCount = 0, PrefabName = "BasicBulletPrefab" },
+                new BulletConfig { Id = 2, BulletName = "Buckshot", Damage = 10, CritRate = 0.05f, CritMultiplier = 1.5f, FlightSpeed = 15.0f, PiercingCount = 0, PrefabName = "BuckshotPrefab" },
+                new BulletConfig { Id = 3, BulletName = "Sniper Round", Damage = 150, CritRate = 0.5f, CritMultiplier = 2.0f, FlightSpeed = 30.0f, PiercingCount = 3, PrefabName = "SniperRoundPrefab" },
+                new BulletConfig { Id = 4, BulletName = "Rifle Bullet", Damage = 30, CritRate = 0.2f, CritMultiplier = 1.5f, FlightSpeed = 20.0f, PiercingCount = 1, PrefabName = "RifleBulletPrefab" },
+                new BulletConfig { Id = 5, BulletName = "Sword Slash", Damage = 40, CritRate = 0.3f, CritMultiplier = 2.0f, FlightSpeed = 5.0f, PiercingCount = 99, PrefabName = "SwordSlashPrefab" }
             );
 
             modelBuilder.Entity<WeaponConfig>().HasData(
@@ -80,9 +80,14 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<BuffConfig>().HasData(
-                new BuffConfig { Id = 1, BuffName = "Speed Boost", Value = 1.5f, Description = "Increases movement speed.", IconPath = "speed_icon", BuffType = "StatModifier", Rarity = "Common" },
-                new BuffConfig { Id = 2, BuffName = "Damage Boost", Value = 2.0f, Description = "Increases damage dealt.", IconPath = "damage_icon", BuffType = "StatModifier", Rarity = "Rare" },
-                new BuffConfig { Id = 3, BuffName = "Health Regen", Value = 10.0f, Description = "Regenerates health over time.", IconPath = "regen_icon", BuffType = "Utility", Rarity = "Epic" }
+                new BuffConfig { Id = 1, BuffName = "Vitality", Value = 2f, Description = "Increases Max HP by +2 and heals.", IconPath = "hp_icon", BuffType = "MaxHP", Rarity = "Common" },
+                new BuffConfig { Id = 2, BuffName = "Swift Foot", Value = 1.15f, Description = "Increases movement speed by +15%.", IconPath = "speed_icon", BuffType = "MoveSpeed", Rarity = "Common" },
+                new BuffConfig { Id = 3, BuffName = "Fierce Combat", Value = 1.20f, Description = "Increases all weapon damage by +20%.", IconPath = "damage_icon", BuffType = "Damage", Rarity = "Common" },
+                new BuffConfig { Id = 4, BuffName = "Magic Focus", Value = 50f, Description = "Increases Max Mana by +50 and refills it.", IconPath = "mana_icon", BuffType = "MaxMana", Rarity = "Common" },
+                new BuffConfig { Id = 5, BuffName = "Golden Touch", Value = 1.50f, Description = "Increases picked up coins by +50%.", IconPath = "coin_icon", BuffType = "CoinMultiplier", Rarity = "Common" },
+                new BuffConfig { Id = 6, BuffName = "Sharp Focus", Value = 15f, Description = "Increases crit rate by +15%.", IconPath = "crit_icon", BuffType = "CritChance", Rarity = "Common" },
+                new BuffConfig { Id = 7, BuffName = "Rapid Fire", Value = 0.80f, Description = "Decreases gun firing cooldown by 20%.", IconPath = "firerate_icon", BuffType = "FireRate", Rarity = "Common" },
+                new BuffConfig { Id = 8, BuffName = "Iron Armor", Value = 2f, Description = "Increases Max Armor by +2 and refills armor.", IconPath = "armor_icon", BuffType = "MaxArmor", Rarity = "Common" }
             );
         }
 

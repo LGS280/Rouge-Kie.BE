@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260720153739_UpdateBuffSeeds")]
+    partial class UpdateBuffSeeds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,9 +161,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<float>("CritMultiplier")
-                        .HasColumnType("real");
-
                     b.Property<float>("CritRate")
                         .HasColumnType("real");
 
@@ -187,7 +187,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 1,
                             BulletName = "Basic Bullet",
-                            CritMultiplier = 1.5f,
                             CritRate = 0.1f,
                             Damage = 20,
                             FlightSpeed = 10f,
@@ -198,7 +197,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 2,
                             BulletName = "Buckshot",
-                            CritMultiplier = 1.5f,
                             CritRate = 0.05f,
                             Damage = 10,
                             FlightSpeed = 15f,
@@ -209,7 +207,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 3,
                             BulletName = "Sniper Round",
-                            CritMultiplier = 2f,
                             CritRate = 0.5f,
                             Damage = 150,
                             FlightSpeed = 30f,
@@ -220,7 +217,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 4,
                             BulletName = "Rifle Bullet",
-                            CritMultiplier = 1.5f,
                             CritRate = 0.2f,
                             Damage = 30,
                             FlightSpeed = 20f,
@@ -231,7 +227,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 5,
                             BulletName = "Sword Slash",
-                            CritMultiplier = 2f,
                             CritRate = 0.3f,
                             Damage = 40,
                             FlightSpeed = 5f,
@@ -1063,7 +1058,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$397vdlIiZzhDylytiocuoOk6.rfXsD4bG9V7woYFtInQjnSv1g44e",
+                            Password = "$2a$11$ycdl6ul2M1ccvWEVrJon1.F0VrzcUoWvjn2lnH9E8agmAJFnbeIPW",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -1073,7 +1068,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "guest@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$O6twhS.RYq.I.22B0GrWge7QJ.bdp3hD75FhT/lDWOxJ.8SJgoJfa",
+                            Password = "$2a$11$.2s4znJK78cJ.eSsejj2uOmAHBYSgawfSrICzYCHPU.MHzPxYMuKG",
                             RoleId = 4,
                             Username = "guest"
                         });
