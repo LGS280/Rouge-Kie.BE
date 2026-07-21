@@ -50,4 +50,13 @@ TestResults/
 _ReSharper*/
 *.DotSettings.user
 
-appsettings*.json
+appsettings.json
+appsettings.Development.json
+!appsettings.example.json
+
+####################################
+# Azure / Deploy secrets
+####################################
+*.pubxml
+*.publishsettings
+*.arm.json
