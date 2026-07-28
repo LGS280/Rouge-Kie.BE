@@ -38,6 +38,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     RecoilDistance = w.RecoilDistance,
                     RecoilDuration = w.RecoilDuration,
                     ReturnDuration = w.ReturnDuration,
+                    WeaponType = w.WeaponType,
+                    Rarity = w.Rarity,
                     BulletId = w.BulletId
                 })
                 .ToListAsync();
@@ -65,6 +67,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 RecoilDistance = w.RecoilDistance,
                 RecoilDuration = w.RecoilDuration,
                 ReturnDuration = w.ReturnDuration,
+                WeaponType = w.WeaponType,
+                Rarity = w.Rarity,
                 BulletId = w.BulletId
             };
         }
@@ -87,6 +91,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 RecoilDistance = request.RecoilDistance,
                 RecoilDuration = request.RecoilDuration,
                 ReturnDuration = request.ReturnDuration,
+                WeaponType = request.WeaponType,
+                Rarity = request.Rarity,
                 BulletId = request.BulletId
             };
 
@@ -115,6 +121,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.RecoilDistance = request.RecoilDistance;
             entity.RecoilDuration = request.RecoilDuration;
             entity.ReturnDuration = request.ReturnDuration;
+            entity.WeaponType = request.WeaponType;
+            entity.Rarity = request.Rarity;
             entity.BulletId = request.BulletId;
 
             await _context.SaveChangesAsync();

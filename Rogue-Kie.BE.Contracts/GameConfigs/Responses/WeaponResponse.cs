@@ -21,6 +21,9 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Responses
         public float RecoilDuration { get; set; } = 0.05f;
         public float ReturnDuration { get; set; } = 0.1f;
 
+        public string WeaponType { get; set; } = string.Empty;
+        public string Rarity { get; set; } = string.Empty;
+
         public int BulletId { get; set; }
     }
 }
