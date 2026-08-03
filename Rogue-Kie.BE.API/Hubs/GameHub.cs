@@ -246,5 +246,19 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // BỔ SUNG: Gửi đồng bộ trạng thái đã ghé thăm phòng trên Minimap cho đồng đội
+        public async Task SyncRoomVisited(string roomId, string roomUniqueId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteRoomVisited", roomUniqueId);
+            }
+        }
+
     }
 }
