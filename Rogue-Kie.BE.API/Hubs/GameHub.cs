@@ -216,5 +216,35 @@ namespace Rogue_Kie.BE.API.Hubs
             await Clients.OthersInGroup(roomId).SendAsync("OnReceiveEnemyPosition", enemyId, x, y);
         }
 
+        // BỔ SUNG: Gửi yêu cầu chuyển tầng đồng bộ tới toàn bộ người chơi trong phòng Co-op
+        public async Task RequestNextFloor(string roomId, int targetFloor)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                // Phát lệnh chuyển tầng tới tất cả thành viên trong nhóm phòng chơi
+                await Clients.Group(roomId).SendAsync("OnFloorTransitionSynced", targetFloor);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ loại súng đang cầm tới các người chơi khác trong phòng Co-op
+        public async Task SyncEquippedWeapon(string roomId, string weaponName)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                // Broadcast tên súng mới cho các người chơi khác trong phòng
+                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteWeaponChanged", Context.ConnectionId, weaponName);
+            }
+        }
+
     }
 }
