@@ -231,8 +231,8 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
-        // BỔ SUNG: Gửi đồng bộ loại súng đang cầm tới các người chơi khác trong phòng Co-op
-        public async Task SyncEquippedWeapon(string roomId, string weaponName)
+        // BỔ SUNG: Gửi đồng bộ loại súng chính và súng phụ đang cầm tới các người chơi khác trong phòng Co-op
+        public async Task SyncEquippedWeapon(string roomId, string activeWeaponName, string secondaryWeaponName)
         {
             if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
             {
@@ -241,8 +241,8 @@ namespace Rogue_Kie.BE.API.Hubs
 
             if (!string.IsNullOrEmpty(roomId))
             {
-                // Broadcast tên súng mới cho các người chơi khác trong phòng
-                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteWeaponChanged", Context.ConnectionId, weaponName);
+                // Broadcast tên súng chính và súng phụ cho các người chơi khác trong phòng
+                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteWeaponChanged", Context.ConnectionId, activeWeaponName, secondaryWeaponName);
             }
         }
 
@@ -257,6 +257,20 @@ namespace Rogue_Kie.BE.API.Hubs
             if (!string.IsNullOrEmpty(roomId))
             {
                 await Clients.OthersInGroup(roomId).SendAsync("OnRemoteRoomVisited", roomUniqueId);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sát thương quái đánh trúng người chơi qua mạng
+        public async Task SyncPlayerDamaged(string roomId, string targetConnId, float damage)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.Group(roomId).SendAsync("OnPlayerDamaged", targetConnId, damage);
             }
         }
 
