@@ -274,5 +274,18 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // BỔ SUNG: Gửi đồng bộ sự kiện người chơi hy sinh (Player Death) tới các đồng đội trong phòng Co-op
+        public async Task SyncPlayerDeath(string roomId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.Group(roomId).SendAsync("OnRemotePlayerDied", Context.ConnectionId);
+            }
+        }
     }
 }
