@@ -152,9 +152,9 @@ namespace Rogue_Kie.BE.API.Hubs
                         }
                         else if (player.IsHost)
                         {
-                            // Nếu Chủ phòng thoát, chuyển quyền Host cho người kế tiếp
-                            room.Players[0].IsHost = true;
-                            await Clients.Group(roomCode).SendAsync("OnHostChanged", room.Players[0].Username, room.Players[0].ConnectionId);
+                            // Theo chỉ đạo của Leader: Nếu Host thoát khỏi game mid-game -> Kết thúc trận đấu và thông báo cho các Client còn lại
+                            await Clients.Group(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+                            RoomManager.ActiveRooms.TryRemove(roomCode, out _);
                         }
                     }
                 }
@@ -302,6 +302,24 @@ namespace Rogue_Kie.BE.API.Hubs
                         room.DeadPlayers.Clear();
                     }
                 }
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sự kiện hồi sinh người chơi (Player Revive) từ đồng đội trong phòng Co-op
+        public async Task SyncPlayerRevive(string roomId, string targetConnId, int reviveHp)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                if (RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
+                {
+                    room.DeadPlayers.Remove(targetConnId);
+                }
+                await Clients.Group(roomId).SendAsync("OnPlayerRevived", targetConnId, reviveHp);
             }
         }
     }
