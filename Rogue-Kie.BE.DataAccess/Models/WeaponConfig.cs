@@ -46,5 +46,10 @@ namespace Rogue_Kie.BE.DataAccess.Models
 
         [ForeignKey("BulletId")]
         public BulletConfig BulletConfig { get; set; }
+
+        public int? SecondBulletId { get; set; }
+
+        [ForeignKey("SecondBulletId")]
+        public BulletConfig? SecondBulletConfig { get; set; }
     }
 }

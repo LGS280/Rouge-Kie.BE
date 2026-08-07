@@ -25,5 +25,6 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Responses
         public string Rarity { get; set; } = string.Empty;
 
         public int BulletId { get; set; }
+        public int? SecondBulletId { get; set; }
     }
 }
