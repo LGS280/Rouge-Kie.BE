@@ -40,7 +40,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     ReturnDuration = w.ReturnDuration,
                     WeaponType = w.WeaponType,
                     Rarity = w.Rarity,
-                    BulletId = w.BulletId
+                    BulletId = w.BulletId,
+                    SecondBulletId = w.SecondBulletId
                 })
                 .ToListAsync();
         }
@@ -69,7 +70,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 ReturnDuration = w.ReturnDuration,
                 WeaponType = w.WeaponType,
                 Rarity = w.Rarity,
-                BulletId = w.BulletId
+                BulletId = w.BulletId,
+                SecondBulletId = w.SecondBulletId
             };
         }
 
@@ -93,7 +95,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 ReturnDuration = request.ReturnDuration,
                 WeaponType = request.WeaponType,
                 Rarity = request.Rarity,
-                BulletId = request.BulletId
+                BulletId = request.BulletId,
+                SecondBulletId = request.SecondBulletId
             };
 
             _context.WeaponConfigs.Add(entity);
@@ -124,6 +127,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.WeaponType = request.WeaponType;
             entity.Rarity = request.Rarity;
             entity.BulletId = request.BulletId;
+            entity.SecondBulletId = request.SecondBulletId;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);
