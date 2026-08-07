@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728132634_AddWeaponTypeAndRarity")]
+    partial class AddWeaponTypeAndRarity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1063,7 +1066,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$OxxU43iRst4yzPMA2WWBN./.QXIYhImg9ePK/hs8rTSSxJH/g4Ybi",
+                            Password = "$2a$11$T1339EUj.Aj1X11HrzHxUOm0za0sGj/Toc2vg4c3Gytf7F/8X6gha",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -1073,7 +1076,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "guest@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$W68HxynSoPkLCv7pAoIhVu5S/.tQJpQyZ7RGSXTR8L5D0uFwUTOE2",
+                            Password = "$2a$11$WkCZ3YyNRQgy9bVunDD6PuyqEyYURaA/DhLfYYsdlo7isx5CwrlQq",
                             RoleId = 4,
                             Username = "guest"
                         });
@@ -1153,9 +1156,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                     b.Property<float>("ReturnDuration")
                         .HasColumnType("real");
 
-                    b.Property<int?>("SecondBulletId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ShootSound")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1180,8 +1180,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BulletId");
-
-                    b.HasIndex("SecondBulletId");
 
                     b.ToTable("WeaponConfigs", (string)null);
 
@@ -1545,13 +1543,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Rogue_Kie.BE.DataAccess.Models.BulletConfig", "SecondBulletConfig")
-                        .WithMany()
-                        .HasForeignKey("SecondBulletId");
-
                     b.Navigation("BulletConfig");
-
-                    b.Navigation("SecondBulletConfig");
                 });
 
             modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.Role", b =>

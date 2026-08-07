@@ -38,7 +38,10 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     RecoilDistance = w.RecoilDistance,
                     RecoilDuration = w.RecoilDuration,
                     ReturnDuration = w.ReturnDuration,
-                    BulletId = w.BulletId
+                    WeaponType = w.WeaponType,
+                    Rarity = w.Rarity,
+                    BulletId = w.BulletId,
+                    SecondBulletId = w.SecondBulletId
                 })
                 .ToListAsync();
         }
@@ -65,7 +68,10 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 RecoilDistance = w.RecoilDistance,
                 RecoilDuration = w.RecoilDuration,
                 ReturnDuration = w.ReturnDuration,
-                BulletId = w.BulletId
+                WeaponType = w.WeaponType,
+                Rarity = w.Rarity,
+                BulletId = w.BulletId,
+                SecondBulletId = w.SecondBulletId
             };
         }
 
@@ -87,7 +93,10 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 RecoilDistance = request.RecoilDistance,
                 RecoilDuration = request.RecoilDuration,
                 ReturnDuration = request.ReturnDuration,
-                BulletId = request.BulletId
+                WeaponType = request.WeaponType,
+                Rarity = request.Rarity,
+                BulletId = request.BulletId,
+                SecondBulletId = request.SecondBulletId
             };
 
             _context.WeaponConfigs.Add(entity);
@@ -115,7 +124,10 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.RecoilDistance = request.RecoilDistance;
             entity.RecoilDuration = request.RecoilDuration;
             entity.ReturnDuration = request.ReturnDuration;
+            entity.WeaponType = request.WeaponType;
+            entity.Rarity = request.Rarity;
             entity.BulletId = request.BulletId;
+            entity.SecondBulletId = request.SecondBulletId;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);

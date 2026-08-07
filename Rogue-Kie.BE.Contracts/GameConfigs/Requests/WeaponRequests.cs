@@ -36,8 +36,16 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
         public float RecoilDuration { get; set; } = 0.05f;
         public float ReturnDuration { get; set; } = 0.1f;
 
+        [MaxLength(50)]
+        public string WeaponType { get; set; } = "Rifle";
+
+        [MaxLength(50)]
+        public string Rarity { get; set; } = "Common";
+
         [Required]
         public int BulletId { get; set; }
+
+        public int? SecondBulletId { get; set; }
     }
 
     public class UpdateWeaponRequest : CreateWeaponRequest

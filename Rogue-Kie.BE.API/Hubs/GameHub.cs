@@ -21,6 +21,7 @@ namespace Rogue_Kie.BE.API.Hubs
     {
         public string RoomCode { get; set; }
         public List<PlayerSession> Players { get; set; } = new List<PlayerSession>();
+        public HashSet<string> DeadPlayers { get; set; } = new HashSet<string>();
     }
 
     // Quản lý bộ nhớ tạm (In-Memory) cho các phòng đang hoạt động
@@ -151,9 +152,9 @@ namespace Rogue_Kie.BE.API.Hubs
                         }
                         else if (player.IsHost)
                         {
-                            // Nếu Chủ phòng thoát, chuyển quyền Host cho người kế tiếp
-                            room.Players[0].IsHost = true;
-                            await Clients.Group(roomCode).SendAsync("OnHostChanged", room.Players[0].Username, room.Players[0].ConnectionId);
+                            // Theo chỉ đạo của Leader: Nếu Host thoát khỏi game mid-game -> Kết thúc trận đấu và thông báo cho các Client còn lại
+                            await Clients.Group(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+                            RoomManager.ActiveRooms.TryRemove(roomCode, out _);
                         }
                     }
                 }
@@ -216,5 +217,110 @@ namespace Rogue_Kie.BE.API.Hubs
             await Clients.OthersInGroup(roomId).SendAsync("OnReceiveEnemyPosition", enemyId, x, y);
         }
 
+        // BỔ SUNG: Gửi yêu cầu chuyển tầng đồng bộ tới toàn bộ người chơi trong phòng Co-op
+        public async Task RequestNextFloor(string roomId, int targetFloor)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                if (RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
+                {
+                    room.DeadPlayers.Clear();
+                }
+
+                // Phát lệnh chuyển tầng tới tất cả thành viên trong nhóm phòng chơi
+                await Clients.Group(roomId).SendAsync("OnFloorTransitionSynced", targetFloor);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ loại súng chính và súng phụ đang cầm tới các người chơi khác trong phòng Co-op
+        public async Task SyncEquippedWeapon(string roomId, string activeWeaponName, string secondaryWeaponName)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                // Broadcast tên súng chính và súng phụ cho các người chơi khác trong phòng
+                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteWeaponChanged", Context.ConnectionId, activeWeaponName, secondaryWeaponName);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ trạng thái đã ghé thăm phòng trên Minimap cho đồng đội
+        public async Task SyncRoomVisited(string roomId, string roomUniqueId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.OthersInGroup(roomId).SendAsync("OnRemoteRoomVisited", roomUniqueId);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sát thương quái đánh trúng người chơi qua mạng
+        public async Task SyncPlayerDamaged(string roomId, string targetConnId, float damage)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.Group(roomId).SendAsync("OnPlayerDamaged", targetConnId, damage);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sự kiện người chơi hy sinh (Player Death) tới các đồng đội trong phòng Co-op
+        public async Task SyncPlayerDeath(string roomId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.Group(roomId).SendAsync("OnRemotePlayerDied", Context.ConnectionId);
+
+                if (RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
+                {
+                    room.DeadPlayers.Add(Context.ConnectionId);
+                    // Nếu TẤT CẢ người chơi trong phòng đều đã hy sinh -> Broadcast OnTeamDefeat cho cả room mở Bảng Defeat
+                    if (room.DeadPlayers.Count >= room.Players.Count && room.Players.Count > 0)
+                    {
+                        await Clients.Group(roomId).SendAsync("OnTeamDefeat");
+                        room.DeadPlayers.Clear();
+                    }
+                }
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sự kiện hồi sinh người chơi (Player Revive) từ đồng đội trong phòng Co-op
+        public async Task SyncPlayerRevive(string roomId, string targetConnId, int reviveHp)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                if (RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
+                {
+                    room.DeadPlayers.Remove(targetConnId);
+                }
+                await Clients.Group(roomId).SendAsync("OnPlayerRevived", targetConnId, reviveHp);
+            }
+        }
     }
 }
