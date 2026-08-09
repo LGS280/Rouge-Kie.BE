@@ -15,7 +15,9 @@ namespace Rogue_Kie.BE.DataAccess.Models
         public int UserId { get; set; }
 
         [ForeignKey(nameof(ShopItem))]
-        public int ShopItemId { get; set; }
+        public int? ShopItemId { get; set; }
+
+        public long OrderCode { get; set; }
 
         [MaxLength(50)]
         public string? TransactionType { get; set; }
@@ -34,7 +36,13 @@ namespace Rogue_Kie.BE.DataAccess.Models
         [MaxLength(100)]
         public string? ReferenceCode { get; set; }
 
+        public string? PaymentUrl { get; set; }
+
+        public string? QrCodeUrl { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? PaidAt { get; set; }
 
         // Navigation properties
         public User? User { get; set; }

@@ -52,6 +52,10 @@ builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICharacter
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICosmeticService, Rogue_Kie.BE.Business.Services.GameConfigs.CosmeticService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IShopItemService, Rogue_Kie.BE.Business.Services.GameConfigs.ShopItemService>();
 
+// Register PayOS Payment Service
+builder.Services.Configure<Rogue_Kie.BE.Contracts.Payment.PayOSSettings>(builder.Configuration.GetSection("PayOS"));
+builder.Services.AddHttpClient<Rogue_Kie.BE.Business.Services.Payment.IPayOSService, Rogue_Kie.BE.Business.Services.Payment.PayOSService>();
+
 // Add SignalR
 builder.Services.AddSignalR();
 
