@@ -289,9 +289,46 @@ namespace Rogue_Kie.BE.Business.Services.Payment
 
             if (transaction == null || transaction.Status == "PAID") return false;
 
+            // Gọi PayOS API cancel đơn hàng trên Server PayOS
+            try
+            {
+                string clientId = string.IsNullOrEmpty(_settings.ClientId) ? "e9157d63-27cc-4afe-bf60-b4c48dad5786" : _settings.ClientId;
+                string apiKey = string.IsNullOrEmpty(_settings.ApiKey) ? "091a6e8e-a064-4ada-ac74-8c571db289e3" : _settings.ApiKey;
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"https://api-merchant.payos.vn/v2/payment-requests/{orderCode}/cancel");
+                requestMessage.Headers.Add("x-client-id", clientId);
+                requestMessage.Headers.Add("x-api-key", apiKey);
+                requestMessage.Headers.Add("User-Agent", "RogueKie-Backend");
+                requestMessage.Content = new StringContent(JsonSerializer.Serialize(new { cancellationReason = "Huy don hang" }), Encoding.UTF8, "application/json");
+
+                var responseMessage = await _httpClient.SendAsync(requestMessage);
+                string responseJson = await responseMessage.Content.ReadAsStringAsync();
+                _logger.LogInformation($"[PayOSService] Cancel PayOS Response ({responseMessage.StatusCode}): {responseJson}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"[PayOSService] Khong the ket noi PayOS API cancel cho OrderCode {orderCode}");
+            }
+
             transaction.Status = "CANCELLED";
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<int> CancelAllPendingPaymentsAsync(int userId)
+        {
+            var pendingTransactions = await _context.Transactions
+                .Where(t => (userId <= 0 || t.UserId == userId) && t.Status == "PENDING")
+                .ToListAsync();
+
+            int count = 0;
+            foreach (var t in pendingTransactions)
+            {
+                bool success = await CancelPaymentAsync(t.OrderCode);
+                if (success) count++;
+            }
+
+            return count;
         }
 
         public async Task<bool> SimulateSuccessAsync(long orderCode)
