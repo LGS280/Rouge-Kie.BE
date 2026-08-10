@@ -62,5 +62,27 @@ namespace Rogue_Kie.BE.API.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Mua vật phẩm trong Cửa hàng bằng Gem hoặc Vàng
+        /// </summary>
+        [HttpPost("buy/{id}")]
+        [Authorize]
+        public async Task<IActionResult> BuyItem(int id)
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return Unauthorized("Không tìm thấy thông tin tài khoản hợp lệ.");
+            }
+
+            var result = await _shopItemService.BuyItemAsync(userId, id);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }

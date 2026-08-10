@@ -90,5 +90,85 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<BuyItemResponse> BuyItemAsync(int userId, int shopItemId)
+        {
+            var shopItem = await _context.ShopItems.FindAsync(shopItemId);
+            if (shopItem == null)
+            {
+                return new BuyItemResponse
+                {
+                    Success = false,
+                    Message = "Không tìm thấy vật phẩm trong Cửa Hàng."
+                };
+            }
+
+            var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null)
+            {
+                profile = new PlayerProfile
+                {
+                    UserId = userId,
+                    DisplayName = "Player " + userId,
+                    StandardCurrency = 0,
+                    PremiumCurrency = 0,
+                    UpdatedAt = System.DateTime.UtcNow
+                };
+                _context.PlayerProfiles.Add(profile);
+            }
+
+            string currency = (shopItem.CurrencyType ?? "GEMS").ToUpper();
+            bool isGem = currency == "GEMS" || currency == "PREMIUM" || currency == "GEM";
+
+            if (isGem)
+            {
+                if (profile.PremiumCurrency < shopItem.Price)
+                {
+                    return new BuyItemResponse
+                    {
+                        Success = false,
+                        Message = $"Bạn không đủ Gem để mua vật phẩm này (Cần {shopItem.Price} Gem, bạn có {profile.PremiumCurrency} Gem).",
+                        RemainingStandardCurrency = profile.StandardCurrency,
+                        RemainingPremiumCurrency = profile.PremiumCurrency
+                    };
+                }
+                profile.PremiumCurrency -= shopItem.Price;
+            }
+            else
+            {
+                if (profile.StandardCurrency < shopItem.Price)
+                {
+                    return new BuyItemResponse
+                    {
+                        Success = false,
+                        Message = $"Bạn không đủ Vàng để mua vật phẩm này (Cần {shopItem.Price} Vàng, bạn có {profile.StandardCurrency} Vàng).",
+                        RemainingStandardCurrency = profile.StandardCurrency,
+                        RemainingPremiumCurrency = profile.PremiumCurrency
+                    };
+                }
+                profile.StandardCurrency -= shopItem.Price;
+            }
+
+            // Nếu mua gói đổi Vàng bằng Gem
+            if (shopItem.ItemType == "EXCHANGE_COINS" || shopItem.ItemType == "COINS")
+            {
+                int coinsToAdd = shopItem.Price * 100; // 1 Gem = 100 Coins
+                profile.StandardCurrency += coinsToAdd;
+            }
+
+            profile.UpdatedAt = System.DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return new BuyItemResponse
+            {
+                Success = true,
+                Message = $"Mua thành công {shopItem.Name}!",
+                ShopItemId = shopItem.ShopItemId,
+                ItemName = shopItem.Name,
+                RemainingStandardCurrency = profile.StandardCurrency,
+                RemainingPremiumCurrency = profile.PremiumCurrency,
+                PurchasedAt = System.DateTime.UtcNow
+            };
+        }
     }
 }
