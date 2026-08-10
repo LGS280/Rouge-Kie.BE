@@ -87,10 +87,14 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             string returnUrl = string.IsNullOrEmpty(_settings.ReturnUrl) ? "https://roguekie.com/payment/success" : _settings.ReturnUrl;
             string cancelUrl = string.IsNullOrEmpty(_settings.CancelUrl) ? "https://roguekie.com/payment/cancel" : _settings.CancelUrl;
 
+            string clientId = string.IsNullOrEmpty(_settings.ClientId) ? "e9157d63-27cc-4afe-bf60-b4c48dad5786" : _settings.ClientId;
+            string apiKey = string.IsNullOrEmpty(_settings.ApiKey) ? "091a6e8e-a064-4ada-ac74-8c571db289e3" : _settings.ApiKey;
+            string checksumKey = string.IsNullOrEmpty(_settings.ChecksumKey) ? "b3923181eb25e58c09b5835e3ed7ac4a6a427c602b5348d463177f1b9abb3463" : _settings.ChecksumKey;
+
             // Tính chữ ký Signature cho PayOS
             // Format chuẩn: amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}
             string signatureData = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
-            string signature = ComputeHmacSha256(signatureData, _settings.ChecksumKey);
+            string signature = ComputeHmacSha256(signatureData, checksumKey);
 
             var payosPayload = new
             {
@@ -108,8 +112,8 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             try
             {
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api-merchant.payos.vn/v2/payment-requests");
-                requestMessage.Headers.Add("x-client-id", _settings.ClientId);
-                requestMessage.Headers.Add("x-api-key", _settings.ApiKey);
+                requestMessage.Headers.Add("x-client-id", clientId);
+                requestMessage.Headers.Add("x-api-key", apiKey);
                 requestMessage.Headers.Add("User-Agent", "RogueKie-Backend");
                 requestMessage.Content = new StringContent(JsonSerializer.Serialize(payosPayload), Encoding.UTF8, "application/json");
 
@@ -121,13 +125,15 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 {
                     using var doc = JsonDocument.Parse(responseJson);
                     var root = doc.RootElement;
-                    if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "00" && root.TryGetProperty("data", out var dataProp))
+                    string codeStr = GetJsonCode(root);
+
+                    if ((codeStr == "00" || codeStr == "0") && root.TryGetProperty("data", out var dataProp))
                     {
-                        if (dataProp.TryGetProperty("checkoutUrl", out var urlProp))
+                        if (dataProp.TryGetProperty("checkoutUrl", out var urlProp) && urlProp.ValueKind == JsonValueKind.String)
                         {
                             checkoutUrl = urlProp.GetString() ?? checkoutUrl;
                         }
-                        if (dataProp.TryGetProperty("qrCode", out var qrProp))
+                        if (dataProp.TryGetProperty("qrCode", out var qrProp) && qrProp.ValueKind == JsonValueKind.String)
                         {
                             string rawQr = qrProp.GetString() ?? "";
                             if (rawQr.StartsWith("http"))
@@ -140,6 +146,10 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                                 qrCodeUrl = $"https://img.vietqr.io/image/970422-0344536487-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName=TRAN%20VU%20QUOC%20DAI";
                             }
                         }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"[PayOSService] PayOS API tra ve code khac 00: {codeStr} - JSON: {responseJson}");
                     }
                 }
                 else
@@ -218,9 +228,13 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             {
                 try
                 {
+                    string clientId = string.IsNullOrEmpty(_settings.ClientId) ? "e9157d63-27cc-4afe-bf60-b4c48dad5786" : _settings.ClientId;
+                    string apiKey = string.IsNullOrEmpty(_settings.ApiKey) ? "091a6e8e-a064-4ada-ac74-8c571db289e3" : _settings.ApiKey;
+
                     var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://api-merchant.payos.vn/v2/payment-requests/{orderCode}");
-                    requestMessage.Headers.Add("x-client-id", _settings.ClientId);
-                    requestMessage.Headers.Add("x-api-key", _settings.ApiKey);
+                    requestMessage.Headers.Add("x-client-id", clientId);
+                    requestMessage.Headers.Add("x-api-key", apiKey);
+                    requestMessage.Headers.Add("User-Agent", "RogueKie-Backend");
 
                     var responseMessage = await _httpClient.SendAsync(requestMessage);
                     if (responseMessage.IsSuccessStatusCode)
@@ -228,9 +242,11 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                         string responseJson = await responseMessage.Content.ReadAsStringAsync();
                         using var doc = JsonDocument.Parse(responseJson);
                         var root = doc.RootElement;
-                        if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "00" && root.TryGetProperty("data", out var dataProp))
+                        string codeStr = GetJsonCode(root);
+
+                        if ((codeStr == "00" || codeStr == "0") && root.TryGetProperty("data", out var dataProp))
                         {
-                            if (dataProp.TryGetProperty("status", out var statusProp))
+                            if (dataProp.TryGetProperty("status", out var statusProp) && statusProp.ValueKind == JsonValueKind.String)
                             {
                                 string payosStatus = statusProp.GetString() ?? "";
                                 if (payosStatus == "PAID")
@@ -340,6 +356,16 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 profile.PremiumCurrency += gemsToAdd;
                 _logger.LogInformation($"[PayOSService] Cong {gemsToAdd} Gems cho User {transaction.UserId}. PremiumCurrency hien tai: {profile.PremiumCurrency}");
             }
+        }
+
+        private static string GetJsonCode(JsonElement element)
+        {
+            if (element.TryGetProperty("code", out var codeProp))
+            {
+                if (codeProp.ValueKind == JsonValueKind.String) return codeProp.GetString() ?? "";
+                if (codeProp.ValueKind == JsonValueKind.Number) return codeProp.GetInt32().ToString();
+            }
+            return "";
         }
 
         private static string ComputeHmacSha256(string data, string key)
