@@ -55,7 +55,14 @@ namespace Rogue_Kie.BE.Business.Services.Payment
 
             if (amount <= 0) amount = 10000; // Mặc định 10,000 VND
 
-            string description = string.IsNullOrEmpty(request.Description) ? "Nap Gem RogueKie" : request.Description;
+            string description = "Nap Gem RogueKie";
+            if (!string.IsNullOrEmpty(request.Description))
+            {
+                // Xóa ký tự tiếng Việt có dấu và ký tự đặc biệt theo yêu cầu của PayOS (tối đa 25 ký tự)
+                string unaccented = RemoveAccents(request.Description);
+                description = System.Text.RegularExpressions.Regex.Replace(unaccented, @"[^a-zA-Z0-9 ]", "");
+            }
+            if (string.IsNullOrWhiteSpace(description)) description = "Nap Gem RogueKie";
             if (description.Length > 25) description = description.Substring(0, 25);
 
             // 2. Tạo Transaction PENDING trong DB
@@ -85,11 +92,17 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             string signatureData = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
             string signature = ComputeHmacSha256(signatureData, _settings.ChecksumKey);
 
+            var itemsList = new[]
+            {
+                new { name = description, quantity = 1, price = amount }
+            };
+
             var payosPayload = new
             {
                 orderCode = orderCode,
                 amount = amount,
                 description = description,
+                items = itemsList,
                 cancelUrl = cancelUrl,
                 returnUrl = returnUrl,
                 signature = signature
@@ -106,9 +119,11 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 requestMessage.Content = new StringContent(JsonSerializer.Serialize(payosPayload), Encoding.UTF8, "application/json");
 
                 var responseMessage = await _httpClient.SendAsync(requestMessage);
+                string responseJson = await responseMessage.Content.ReadAsStringAsync();
+                _logger.LogInformation($"[PayOSService] Response tu PayOS API ({responseMessage.StatusCode}): {responseJson}");
+
                 if (responseMessage.IsSuccessStatusCode)
                 {
-                    string responseJson = await responseMessage.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(responseJson);
                     var root = doc.RootElement;
                     if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "00" && root.TryGetProperty("data", out var dataProp))
@@ -119,9 +134,22 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                         }
                         if (dataProp.TryGetProperty("qrCode", out var qrProp))
                         {
-                            qrCodeUrl = qrProp.GetString() ?? qrCodeUrl;
+                            string rawQr = qrProp.GetString() ?? "";
+                            if (rawQr.StartsWith("http"))
+                            {
+                                qrCodeUrl = rawQr;
+                            }
+                            else
+                            {
+                                // Chuyển đổi mã EMV thô sang đường dẫn ảnh VietQR chuẩn để hiển thị UI/Web
+                                qrCodeUrl = $"https://img.vietqr.io/image/970422-0344536487-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName=TRAN%20VU%20QUOC%20DAI";
+                            }
                         }
                     }
+                }
+                else
+                {
+                    _logger.LogError($"[PayOSService] PayOS API tra ve loi ({responseMessage.StatusCode}): {responseJson}");
                 }
             }
             catch (Exception ex)
@@ -189,6 +217,44 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 .FirstOrDefaultAsync(t => t.OrderCode == orderCode || t.ReferenceCode == orderCode.ToString());
 
             if (transaction == null) return null;
+
+            // Nếu trạng thái trong DB đang là PENDING, tự động gọi PayOS API để sync tức thì (Đặc biệt hữu ích khi chạy Localhost không có Webhook Public URL)
+            if (transaction.Status == "PENDING")
+            {
+                try
+                {
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://api-merchant.payos.vn/v2/payment-requests/{orderCode}");
+                    requestMessage.Headers.Add("x-client-id", _settings.ClientId);
+                    requestMessage.Headers.Add("x-api-key", _settings.ApiKey);
+
+                    var responseMessage = await _httpClient.SendAsync(requestMessage);
+                    if (responseMessage.IsSuccessStatusCode)
+                    {
+                        string responseJson = await responseMessage.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(responseJson);
+                        var root = doc.RootElement;
+                        if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "00" && root.TryGetProperty("data", out var dataProp))
+                        {
+                            if (dataProp.TryGetProperty("status", out var statusProp))
+                            {
+                                string payosStatus = statusProp.GetString() ?? "";
+                                if (payosStatus == "PAID")
+                                {
+                                    transaction.Status = "PAID";
+                                    transaction.PaidAt = DateTime.UtcNow;
+                                    await FulfillUserRewardAsync(transaction);
+                                    await _context.SaveChangesAsync();
+                                    _logger.LogInformation($"[PayOSService] Sync trang thai THANH CONG tu PayOS API cho OrderCode: {orderCode}!");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"[PayOSService] Khong the sync trang thai tu PayOS API cho OrderCode {orderCode}");
+                }
+            }
 
             return new PaymentResponse
             {
@@ -290,6 +356,22 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             using var hmac = new HMACSHA256(keyBytes);
             byte[] hashBytes = hmac.ComputeHash(dataBytes);
             return Convert.ToHexString(hashBytes).ToLower();
+        }
+
+        private static string RemoveAccents(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text;
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }
