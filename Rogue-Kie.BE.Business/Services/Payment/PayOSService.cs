@@ -88,21 +88,15 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             string cancelUrl = string.IsNullOrEmpty(_settings.CancelUrl) ? "https://roguekie.com/payment/cancel" : _settings.CancelUrl;
 
             // Tính chữ ký Signature cho PayOS
-            // Format: amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}
+            // Format chuẩn: amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}
             string signatureData = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
             string signature = ComputeHmacSha256(signatureData, _settings.ChecksumKey);
-
-            var itemsList = new[]
-            {
-                new { name = description, quantity = 1, price = amount }
-            };
 
             var payosPayload = new
             {
                 orderCode = orderCode,
                 amount = amount,
                 description = description,
-                items = itemsList,
                 cancelUrl = cancelUrl,
                 returnUrl = returnUrl,
                 signature = signature
@@ -116,6 +110,7 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api-merchant.payos.vn/v2/payment-requests");
                 requestMessage.Headers.Add("x-client-id", _settings.ClientId);
                 requestMessage.Headers.Add("x-api-key", _settings.ApiKey);
+                requestMessage.Headers.Add("User-Agent", "RogueKie-Backend");
                 requestMessage.Content = new StringContent(JsonSerializer.Serialize(payosPayload), Encoding.UTF8, "application/json");
 
                 var responseMessage = await _httpClient.SendAsync(requestMessage);
