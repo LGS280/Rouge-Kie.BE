@@ -96,7 +96,7 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             };
 
             string checkoutUrl = $"https://pay.payos.vn/web/{orderCode}";
-            string qrCodeUrl = $"https://img.vietqr.io/image/970422-123456789-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName=ROGUE%20KIE";
+            string qrCodeUrl = $"https://img.vietqr.io/image/970422-0344536487-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName=TRAN%20VU%20QUOC%20DAI";
 
             try
             {
