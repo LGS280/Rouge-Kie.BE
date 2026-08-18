@@ -9,6 +9,7 @@ namespace Rogue_Kie.BE.Business.Services.Payment
         Task<bool> ProcessWebhookAsync(PayOSWebhookRequest webhook);
         Task<PaymentResponse?> GetPaymentStatusAsync(long orderCode);
         Task<bool> CancelPaymentAsync(long orderCode);
+        Task<int> CancelAllPendingPaymentsAsync(int userId);
         Task<bool> SimulateSuccessAsync(long orderCode);
     }
 }

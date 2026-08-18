@@ -29,6 +29,9 @@ namespace Rogue_Kie.BE.API.Hubs
     {
         public static ConcurrentDictionary<string, RoomSession> ActiveRooms = new ConcurrentDictionary<string, RoomSession>();
         public static ConcurrentDictionary<string, string> ConnectionToRoom = new ConcurrentDictionary<string, string>(); // ConnectionId -> RoomCode
+        public static ConcurrentDictionary<string, byte> ConnectedUsers = new ConcurrentDictionary<string, byte>();
+
+        public static int GetCCU() => ConnectedUsers.Count;
     }
 
     public class GameHub : Hub
@@ -133,8 +136,10 @@ namespace Rogue_Kie.BE.API.Hubs
         // ===================================================================================
 
         // 5. Xử lý khi ngắt kết nối đột ngột
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
+            RoomManager.ConnectedUsers.TryRemove(Context.ConnectionId, out _);
+
             if (RoomManager.ConnectionToRoom.TryRemove(Context.ConnectionId, out string roomCode))
             {
                 if (RoomManager.ActiveRooms.TryGetValue(roomCode, out var room))
@@ -321,6 +326,12 @@ namespace Rogue_Kie.BE.API.Hubs
                 }
                 await Clients.Group(roomId).SendAsync("OnPlayerRevived", targetConnId, reviveHp);
             }
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            RoomManager.ConnectedUsers.TryAdd(Context.ConnectionId, 0);
+            await base.OnConnectedAsync();
         }
     }
 }

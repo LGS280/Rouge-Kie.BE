@@ -77,6 +77,21 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         /// <summary>
+        /// Hủy TOÀN BỘ đơn hàng chưa thanh toán (PENDING) trên PayOS Server và DB
+        /// </summary>
+        [HttpPost("cancel-all-pending")]
+        [Authorize]
+        public async Task<IActionResult> CancelAllPendingPayments()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int userId = 0;
+            if (!string.IsNullOrEmpty(userIdStr)) int.TryParse(userIdStr, out userId);
+
+            int count = await _payOSService.CancelAllPendingPaymentsAsync(userId);
+            return Ok(new { message = $"Đã hủy thành công {count} đơn hàng đang PENDING trên PayOS Server!" });
+        }
+
+        /// <summary>
         /// Giả lập thanh toán thành công trong môi trường Dev (không cần tốn tiền thật)
         /// </summary>
         [HttpPost("dev-simulate-success/{orderCode}")]
