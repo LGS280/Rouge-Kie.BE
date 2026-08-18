@@ -156,6 +156,11 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (user != null)
             {
+                if (!user.IsActive)
+                {
+                    throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
+                }
+
                 user.LastLogin = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return user;
@@ -205,6 +210,11 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             if (user == null)
             {
                 throw new InvalidOperationException("Username hoặc Email không tồn tại.");
+            }
+
+            if (!user.IsActive)
+            {
+                throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
             }
 
             // So sánh password nhập vào với password hash trong database.
