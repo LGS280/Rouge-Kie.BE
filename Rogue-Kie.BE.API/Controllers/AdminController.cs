@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace Rogue_Kie.BE.API.Controllers
 {
+    /// <summary>
+    /// Controller Quản trị chuyên dụng dành riêng cho Ban Quản Trị (Admin & Developer).
+    /// Cung cấp các API Thống kê số liệu hệ thống, Theo dõi CCU thời gian thực và Khóa/Mở khóa tài khoản.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin,Developer")]
@@ -16,13 +20,22 @@ namespace Rogue_Kie.BE.API.Controllers
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// Khởi tạo Controller với Dependency Injection AppDbContext
+        /// </summary>
         public AdminController(AppDbContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Thống kê tổng quan số liệu hệ thống (Tổng User, Số trận đấu, Tổng Gem/Coin, CCU Online)
+        /// Endpoint: GET /api/admin/stats
+        /// Thống kê tổng quan chỉ số toàn hệ thống:
+        /// - Tổng số tài khoản đăng ký (TotalUsers)
+        /// - Tổng số lượt chơi đã diễn ra (TotalRuns)
+        /// - Tổng kinh tế Gem lưu thông (TotalGemsInEconomy - PremiumCurrency)
+        /// - Tổng kinh tế Coin lưu thông (TotalCoinsInEconomy - StandardCurrency)
+        /// - Số người chơi đang Online thời gian thực (OnlinePlayerCCU từ SignalR RoomManager)
         /// </summary>
         [HttpGet("stats")]
         public async Task<IActionResult> GetSystemStats()
@@ -52,7 +65,9 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         /// <summary>
-        /// Lấy số lượng người chơi đang online thời gian thực (Concurrent Users - CCU)
+        /// Endpoint: GET /api/admin/ccu
+        /// Lấy thông số người chơi đang online thời gian thực (Concurrent Users - CCU)
+        /// Trả về số lượng kết nối SignalR đang active và số phòng chơi Co-op đang diễn ra.
         /// </summary>
         [HttpGet("ccu")]
         public IActionResult GetOnlineCCU()
@@ -66,7 +81,10 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         /// <summary>
-        /// Khóa tài khoản người chơi (1-Click Lock User)
+        /// Endpoint: POST /api/admin/users/{id}/lock
+        /// Khóa tài khoản người chơi (1-Click Lock Account).
+        /// Cập nhật IsActive = false trong Database Neon PostgreSQL.
+        /// Khi IsActive = false, người chơi sẽ bị dập tắt quyền đăng nhập và ngắt kết nối Co-op lập tức.
         /// </summary>
         [HttpPost("users/{id:int}/lock")]
         public async Task<IActionResult> LockUser([FromRoute] int id)
@@ -76,6 +94,7 @@ namespace Rogue_Kie.BE.API.Controllers
                 var user = await _context.Users.FindAsync(id);
                 if (user == null) return NotFound(new { Success = false, Message = "Tài khoản không tồn tại." });
 
+                // Chuyển cờ IsActive sang false để khóa tài khoản
                 user.IsActive = false;
                 await _context.SaveChangesAsync();
 
@@ -93,7 +112,10 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         /// <summary>
-        /// Mở khóa tài khoản người chơi (1-Click Unlock User)
+        /// Endpoint: POST /api/admin/users/{id}/unlock
+        /// Mở khóa tài khoản người chơi (1-Click Unlock Account).
+        /// Cập nhật IsActive = true trong Database Neon PostgreSQL.
+        /// Khôi phục lại quyền đăng nhập và tham gia chơi game bình thường cho người dùng.
         /// </summary>
         [HttpPost("users/{id:int}/unlock")]
         public async Task<IActionResult> UnlockUser([FromRoute] int id)
@@ -103,6 +125,7 @@ namespace Rogue_Kie.BE.API.Controllers
                 var user = await _context.Users.FindAsync(id);
                 if (user == null) return NotFound(new { Success = false, Message = "Tài khoản không tồn tại." });
 
+                // Chuyển cờ IsActive sang true để mở khóa tài khoản
                 user.IsActive = true;
                 await _context.SaveChangesAsync();
 

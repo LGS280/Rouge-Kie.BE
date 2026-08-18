@@ -156,6 +156,8 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (user != null)
             {
+                // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive của tài khoản.
+                // Nếu tài khoản bị Admin chuyển IsActive = false (hoặc Soft Delete), lập tức chặn không cho cấp JWT Token.
                 if (!user.IsActive)
                 {
                     throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
@@ -212,6 +214,8 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("Username hoặc Email không tồn tại.");
             }
 
+            // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive trước khi cho phép đăng nhập.
+            // Ngăn chặn tài khoản bị Admin khóa (Block/Lock) tiếp tục truy cập hệ thống.
             if (!user.IsActive)
             {
                 throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
