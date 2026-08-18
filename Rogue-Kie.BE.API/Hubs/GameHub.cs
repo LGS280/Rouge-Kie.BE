@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Rogue_Kie.BE.API.Hubs.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,32 +9,9 @@ using System.Threading.Tasks;
 
 namespace Rogue_Kie.BE.API.Hubs
 {
-    // Model lưu thông tin người chơi trong phòng chơi ảo
-    public class PlayerSession
-    {
-        public string ConnectionId { get; set; }
-        public string Username { get; set; }
-        public bool IsHost { get; set; }
-    }
-
-    // Model quản lý Phòng chơi ảo
-    public class RoomSession
-    {
-        public string RoomCode { get; set; }
-        public List<PlayerSession> Players { get; set; } = new List<PlayerSession>();
-        public HashSet<string> DeadPlayers { get; set; } = new HashSet<string>();
-    }
-
-    // Quản lý bộ nhớ tạm (In-Memory) cho các phòng đang hoạt động
-    public static class RoomManager
-    {
-        public static ConcurrentDictionary<string, RoomSession> ActiveRooms = new ConcurrentDictionary<string, RoomSession>();
-        public static ConcurrentDictionary<string, string> ConnectionToRoom = new ConcurrentDictionary<string, string>(); // ConnectionId -> RoomCode
-        public static ConcurrentDictionary<string, byte> ConnectedUsers = new ConcurrentDictionary<string, byte>();
-
-        public static int GetCCU() => ConnectedUsers.Count;
-    }
-
+    /// <summary>
+    /// Hub SignalR chính xử lý toàn bộ các sự kiện đồng bộ Co-op Multiplayer và vị trí người chơi 60 FPS.
+    /// </summary>
     public class GameHub : Hub
     {
         // 1. Tạo phòng mới (Create Room)
@@ -70,7 +48,7 @@ namespace Rogue_Kie.BE.API.Hubs
                 return;
             }
 
-            if (room.Players.Count >= 4)
+            if (room.Players.Count >= 2)
             {
                 await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đã đầy!");
                 return;
