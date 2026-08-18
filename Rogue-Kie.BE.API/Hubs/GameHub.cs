@@ -48,7 +48,7 @@ namespace Rogue_Kie.BE.API.Hubs
                 return;
             }
 
-            if (room.Players.Count >= 4)
+            if (room.Players.Count >= 2)
             {
                 await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đã đầy!");
                 return;
