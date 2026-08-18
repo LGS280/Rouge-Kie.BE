@@ -12,5 +12,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<ShopItemResponse> CreateAsync(CreateShopItemRequest request);
         Task<ShopItemResponse?> UpdateAsync(int id, UpdateShopItemRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<BuyItemResponse> BuyItemAsync(int userId, int shopItemId);
     }
 }

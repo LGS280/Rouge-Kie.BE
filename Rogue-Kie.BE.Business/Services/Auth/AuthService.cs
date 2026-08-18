@@ -25,6 +25,8 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             _config = config;
         }
 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _otpCooldowns = new();
+
         // Tạo và gửi OTP cho email đăng ký.
         // Nếu lỗi ở chức năng này, kiểm tra email đã tồn tại, cooldown OTP và cấu hình SMTP.
         public async Task SendRegisterOtpAsync(string email)
@@ -34,6 +36,16 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             if (string.IsNullOrWhiteSpace(normalizedEmail))
             {
                 throw new ArgumentException("Email không hợp lệ.");
+            }
+
+            if (_otpCooldowns.TryGetValue(normalizedEmail, out var lastSent))
+            {
+                var secondsSinceLastSent = (DateTime.UtcNow - lastSent).TotalSeconds;
+                if (secondsSinceLastSent < OtpResendCooldownSeconds)
+                {
+                    var waitTime = OtpResendCooldownSeconds - (int)secondsSinceLastSent;
+                    throw new InvalidOperationException($"Vui lòng đợi {waitTime} giây trước khi yêu cầu gửi lại OTP.");
+                }
             }
 
             var emailExists = await _context.Users
@@ -48,6 +60,9 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             // For now, we simulate OTP sending success without database logging.
             var otpCode = GenerateOtpCode();
             await _emailService.SendRegisterOtpAsync(normalizedEmail, otpCode);
+
+            // Record the time OTP was sent for rate limiting
+            _otpCooldowns[normalizedEmail] = DateTime.UtcNow;
         }
 
         // Đăng ký tài khoản mới trực tiếp không cần lưu/đối chiếu OTP qua DB.
@@ -156,6 +171,13 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (user != null)
             {
+                // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive của tài khoản.
+                // Nếu tài khoản bị Admin chuyển IsActive = false (hoặc Soft Delete), lập tức chặn không cho cấp JWT Token.
+                if (!user.IsActive)
+                {
+                    throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
+                }
+
                 user.LastLogin = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return user;
@@ -205,6 +227,13 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             if (user == null)
             {
                 throw new InvalidOperationException("Username hoặc Email không tồn tại.");
+            }
+
+            // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive trước khi cho phép đăng nhập.
+            // Ngăn chặn tài khoản bị Admin khóa (Block/Lock) tiếp tục truy cập hệ thống.
+            if (!user.IsActive)
+            {
+                throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
             }
 
             // So sánh password nhập vào với password hash trong database.
