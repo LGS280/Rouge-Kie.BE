@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Rogue_Kie.BE.API.Hubs;
+using Rogue_Kie.BE.API.Hubs.Models;
 using Rogue_Kie.BE.DataAccess.DBContext;
 using System;
 using System.Linq;
