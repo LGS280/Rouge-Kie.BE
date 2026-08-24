@@ -119,6 +119,34 @@ namespace Rogue_Kie.BE.API.Hubs
 
         // ===================================================================================
 
+        /// <summary>
+        /// Rời khỏi phòng hiện tại (khi bấm nút Back từ Sảnh chờ)
+        /// </summary>
+        public async Task LeaveRoom()
+        {
+            if (RoomManager.ConnectionToRoom.TryRemove(Context.ConnectionId, out string roomCode))
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
+
+                if (RoomManager.ActiveRooms.TryGetValue(roomCode, out var room))
+                {
+                    var player = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+                    if (player != null)
+                    {
+                        room.Players.Remove(player);
+                        await Clients.OthersInGroup(roomCode).SendAsync("OnPlayerDisconnected", player.Username, Context.ConnectionId);
+
+                        // Nếu là Host rời đi hoặc phòng không còn ai -> Giải phóng phòng ngay lập tức
+                        if (player.IsHost || room.Players.Count == 0)
+                        {
+                            await Clients.OthersInGroup(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+                            RoomManager.ActiveRooms.TryRemove(roomCode, out _);
+                        }
+                    }
+                }
+            }
+        }
+
         // 5. Xử lý khi ngắt kết nối đột ngột
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
