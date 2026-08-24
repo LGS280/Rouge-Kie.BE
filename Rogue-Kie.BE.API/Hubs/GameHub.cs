@@ -54,6 +54,19 @@ namespace Rogue_Kie.BE.API.Hubs
                 return;
             }
 
+            // Nếu người này đã có trong phòng (tránh trùng ConnectionId khi test lặp lại)
+            var existingPlayer = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+            if (existingPlayer != null)
+            {
+                existingPlayer.Username = username;
+                RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+
+                var players = room.Players.Select(p => p.Username).ToList();
+                await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, players, existingPlayer.IsHost);
+                return;
+            }
+
             if (room.Players.Count >= room.MaxPlayers)
             {
                 await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Phòng đã đầy! (Tối đa {room.MaxPlayers} người)");
