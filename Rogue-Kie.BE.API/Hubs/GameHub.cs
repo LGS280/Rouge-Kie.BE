@@ -48,9 +48,15 @@ namespace Rogue_Kie.BE.API.Hubs
                 return;
             }
 
-            if (room.Players.Count >= 2)
+            if (room.IsGameStarted)
             {
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đã đầy!");
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đang trong trận đấu!");
+                return;
+            }
+
+            if (room.Players.Count >= room.MaxPlayers)
+            {
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Phòng đã đầy! (Tối đa {room.MaxPlayers} người)");
                 return;
             }
 
@@ -171,11 +177,29 @@ namespace Rogue_Kie.BE.API.Hubs
                     var player = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
                     if (player != null && player.IsHost)
                     {
+                        room.IsGameStarted = true;
                         // Phát lệnh chuyển Scene cho TOÀN BỘ thành viên trong Group mã phòng này
                         await Clients.Group(roomCode).SendAsync("OnGameStarted");
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách các phòng chơi đang mở trên Server (phục vụ hiển thị Lobby Room List UI)
+        /// </summary>
+        public async Task GetPublicRooms()
+        {
+            var roomList = RoomManager.ActiveRooms.Values.Select(r => new
+            {
+                roomCode = r.RoomCode,
+                hostName = r.Players.FirstOrDefault(p => p.IsHost)?.Username ?? "Host",
+                currentPlayers = r.Players.Count,
+                maxPlayers = r.MaxPlayers,
+                isGameStarted = r.IsGameStarted
+            }).ToList();
+
+            await Clients.Caller.SendAsync("OnReceivePublicRooms", roomList);
         }
 
         // Gửi sự kiện bắn súng từ người chơi
