@@ -147,13 +147,25 @@ namespace Rogue_Kie.BE.API.Hubs
                     if (player != null)
                     {
                         room.Players.Remove(player);
-                        await Clients.OthersInGroup(roomCode).SendAsync("OnPlayerDisconnected", player.Username, Context.ConnectionId);
 
-                        // Nếu là Host rời đi hoặc phòng không còn ai -> Giải phóng phòng ngay lập tức
+                        // Nếu là Host rời đi hoặc phòng không còn ai -> Giải phóng phòng và kick tất cả các player còn lại ngay lập tức
                         if (player.IsHost || room.Players.Count == 0)
                         {
-                            await Clients.OthersInGroup(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+                            // Phát thông báo giải tán phòng tới TOÀN BỘ các thành viên còn lại
+                            await Clients.Group(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+
+                            // Xóa mapping của các player còn lại khỏi ConnectionToRoom
+                            foreach (var p in room.Players)
+                            {
+                                RoomManager.ConnectionToRoom.TryRemove(p.ConnectionId, out _);
+                            }
+
                             RoomManager.ActiveRooms.TryRemove(roomCode, out _);
+                        }
+                        else
+                        {
+                            // Nếu là Client thường thoát -> Báo cho các người còn lại cập nhật danh sách
+                            await Clients.Group(roomCode).SendAsync("OnPlayerDisconnected", player.Username, Context.ConnectionId);
                         }
                     }
                 }
@@ -182,8 +194,14 @@ namespace Rogue_Kie.BE.API.Hubs
                         }
                         else if (player.IsHost)
                         {
-                            // Theo chỉ đạo của Leader: Nếu Host thoát khỏi game mid-game -> Kết thúc trận đấu và thông báo cho các Client còn lại
+                            // Theo chỉ đạo: Nếu Host thoát khỏi game -> Kết thúc trận/giải tán phòng và kick tất cả các Client còn lại
                             await Clients.Group(roomCode).SendAsync("OnHostDisconnectedEndGame", player.Username);
+
+                            foreach (var p in room.Players)
+                            {
+                                RoomManager.ConnectionToRoom.TryRemove(p.ConnectionId, out _);
+                            }
+
                             RoomManager.ActiveRooms.TryRemove(roomCode, out _);
                         }
                     }
