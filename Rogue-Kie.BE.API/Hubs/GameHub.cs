@@ -15,82 +15,115 @@ namespace Rogue_Kie.BE.API.Hubs
     public class GameHub : Hub
     {
         // 1. Tạo phòng mới (Create Room)
-        // 1. Trong hàm CreateRoom
         public async Task CreateRoom(string username)
         {
-            string roomCode = GenerateRoomCode();
-
-            var room = new RoomSession { RoomCode = roomCode };
-            room.Players.Add(new PlayerSession
+            try
             {
-                ConnectionId = Context.ConnectionId,
-                Username = username,
-                IsHost = true
-            });
+                string roomCode = GenerateRoomCode();
 
-            RoomManager.ActiveRooms[roomCode] = room;
-            RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    username = $"Host_{Context.ConnectionId.Substring(0, Math.Min(4, Context.ConnectionId.Length))}";
+                }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+                var room = new RoomSession { RoomCode = roomCode };
+                room.Players.Add(new PlayerSession
+                {
+                    ConnectionId = Context.ConnectionId,
+                    Username = username,
+                    IsHost = true
+                });
 
-            // THAY ĐỔI Ở ĐÂY: Truyền thêm giá trị true (vì người tạo chắc chắn là Host)
-            await Clients.Caller.SendAsync("OnRoomCreated", roomCode, true);
-        }
-
-        // 2. Trong hàm JoinRoom
-        public async Task JoinRoom(string roomCode, string username)
-        {
-            roomCode = roomCode.ToUpper().Trim();
-
-            if (!RoomManager.ActiveRooms.TryGetValue(roomCode, out var room))
-            {
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng không tồn tại!");
-                return;
-            }
-
-            if (room.IsGameStarted)
-            {
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đang trong trận đấu!");
-                return;
-            }
-
-            // Nếu người này đã có trong phòng (tránh trùng ConnectionId khi test lặp lại)
-            var existingPlayer = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
-            if (existingPlayer != null)
-            {
-                existingPlayer.Username = username;
+                RoomManager.ActiveRooms[roomCode] = room;
                 RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
 
-                var players = room.Players.Select(p => p.Username).ToList();
-                await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, players, existingPlayer.IsHost);
-                return;
+                await Clients.Caller.SendAsync("OnRoomCreated", roomCode, true);
             }
-
-            if (room.Players.Count >= room.MaxPlayers)
+            catch (Exception ex)
             {
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Phòng đã đầy! (Tối đa {room.MaxPlayers} người)");
-                return;
+                Console.WriteLine($"[GameHub] Lỗi CreateRoom: {ex}");
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Lỗi tạo phòng: {ex.Message}");
             }
+        }
 
-            var newPlayer = new PlayerSession
+        // 2. Vào phòng (Join Room)
+        public async Task JoinRoom(string roomCode, string username)
+        {
+            try
             {
-                ConnectionId = Context.ConnectionId,
-                Username = username,
-                IsHost = false // Người vào sau mặc định không phải Host ban đầu
-            };
+                if (string.IsNullOrWhiteSpace(roomCode))
+                {
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Mã phòng không hợp lệ!");
+                    return;
+                }
 
-            room.Players.Add(newPlayer);
-            RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+                roomCode = roomCode.ToUpper().Trim();
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+                if (!RoomManager.ActiveRooms.TryGetValue(roomCode, out var room) || room == null)
+                {
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng không tồn tại hoặc đã giải tán!");
+                    return;
+                }
 
-            var currentPlayers = room.Players.Select(p => p.Username).ToList();
+                if (room.IsGameStarted)
+                {
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đang trong trận đấu!");
+                    return;
+                }
 
-            // THAY ĐỔI Ở ĐÂY: Truyền thêm giá trị false về cho Caller (vì họ là người vào sau, không phải Host)
-            await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, currentPlayers, false);
+                if (room.Players == null)
+                {
+                    room.Players = new List<PlayerSession>();
+                }
 
-            await Clients.OthersInGroup(roomCode).SendAsync("OnPlayerJoined", username, Context.ConnectionId);
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    username = $"Player_{Context.ConnectionId.Substring(0, Math.Min(4, Context.ConnectionId.Length))}";
+                }
+
+                // Nếu người này đã có trong phòng (tránh trùng ConnectionId khi test lặp lại)
+                var existingPlayer = room.Players.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+                if (existingPlayer != null)
+                {
+                    existingPlayer.Username = username;
+                    RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+                    await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+
+                    var players = room.Players.Select(p => p.Username).ToList();
+                    await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, players, existingPlayer.IsHost);
+                    return;
+                }
+
+                if (room.Players.Count >= room.MaxPlayers)
+                {
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Phòng đã đầy! (Tối đa {room.MaxPlayers} người)");
+                    return;
+                }
+
+                var newPlayer = new PlayerSession
+                {
+                    ConnectionId = Context.ConnectionId,
+                    Username = username,
+                    IsHost = false // Người vào sau mặc định không phải Host ban đầu
+                };
+
+                room.Players.Add(newPlayer);
+                RoomManager.ConnectionToRoom[Context.ConnectionId] = roomCode;
+
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+
+                var currentPlayers = room.Players.Select(p => p.Username).ToList();
+
+                await Clients.Caller.SendAsync("OnJoinRoomSuccess", roomCode, currentPlayers, false);
+                await Clients.OthersInGroup(roomCode).SendAsync("OnPlayerJoined", username, Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GameHub] Lỗi JoinRoom: {ex}");
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Lỗi tham gia phòng: {ex.Message}");
+            }
         }
 
         // 3. Đồng bộ tọa độ di chuyển (Sync Position)
@@ -249,16 +282,25 @@ namespace Rogue_Kie.BE.API.Hubs
         /// </summary>
         public async Task GetPublicRooms()
         {
-            var roomList = RoomManager.ActiveRooms.Values.Select(r => new
+            try
             {
-                roomCode = r.RoomCode,
-                hostName = r.Players.FirstOrDefault(p => p.IsHost)?.Username ?? "Host",
-                currentPlayers = r.Players.Count,
-                maxPlayers = r.MaxPlayers,
-                isGameStarted = r.IsGameStarted
-            }).ToList();
+                var roomList = RoomManager.ActiveRooms.Values
+                    .Where(r => r != null && !string.IsNullOrEmpty(r.RoomCode))
+                    .Select(r => new
+                    {
+                        roomCode = r.RoomCode,
+                        hostName = r.Players?.FirstOrDefault(p => p.IsHost)?.Username ?? "Host",
+                        currentPlayers = r.Players?.Count ?? 1,
+                        maxPlayers = r.MaxPlayers > 0 ? r.MaxPlayers : 4,
+                        isGameStarted = r.IsGameStarted
+                    }).ToList();
 
-            await Clients.Caller.SendAsync("OnReceivePublicRooms", roomList);
+                await Clients.Caller.SendAsync("OnReceivePublicRooms", roomList);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GameHub] Lỗi GetPublicRooms: {ex}");
+            }
         }
 
         // Gửi sự kiện bắn súng từ người chơi
