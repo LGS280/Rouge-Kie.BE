@@ -133,6 +133,25 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                         {
                             checkoutUrl = urlProp.GetString() ?? checkoutUrl;
                         }
+
+                        string bin = "970422";
+                        if (dataProp.TryGetProperty("bin", out var binProp) && binProp.ValueKind == JsonValueKind.String)
+                        {
+                            bin = binProp.GetString() ?? "970422";
+                        }
+
+                        string accountNumber = "";
+                        if (dataProp.TryGetProperty("accountNumber", out var accProp) && accProp.ValueKind == JsonValueKind.String)
+                        {
+                            accountNumber = accProp.GetString() ?? "";
+                        }
+
+                        string accountName = "TRAN VU QUOC DAI";
+                        if (dataProp.TryGetProperty("accountName", out var nameProp) && nameProp.ValueKind == JsonValueKind.String)
+                        {
+                            accountName = nameProp.GetString() ?? "TRAN VU QUOC DAI";
+                        }
+
                         if (dataProp.TryGetProperty("qrCode", out var qrProp) && qrProp.ValueKind == JsonValueKind.String)
                         {
                             string rawQr = qrProp.GetString() ?? "";
@@ -140,11 +159,18 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                             {
                                 qrCodeUrl = rawQr;
                             }
-                            else
+                            else if (!string.IsNullOrEmpty(rawQr))
                             {
-                                // Chuyển đổi mã EMV thô sang đường dẫn ảnh VietQR chuẩn để hiển thị UI/Web
-                                qrCodeUrl = $"https://img.vietqr.io/image/970422-0344536487-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName=TRAN%20VU%20QUOC%20DAI";
+                                qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={Uri.EscapeDataString(rawQr)}";
                             }
+                            else if (!string.IsNullOrEmpty(accountNumber))
+                            {
+                                qrCodeUrl = $"https://img.vietqr.io/image/{bin}-{accountNumber}-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName={Uri.EscapeDataString(accountName)}";
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(accountNumber))
+                        {
+                            qrCodeUrl = $"https://img.vietqr.io/image/{bin}-{accountNumber}-compact2.jpg?amount={amount}&addInfo={Uri.EscapeDataString(description)}&accountName={Uri.EscapeDataString(accountName)}";
                         }
                     }
                     else
