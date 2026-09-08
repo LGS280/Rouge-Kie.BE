@@ -459,7 +459,7 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
-        // BỔ SUNG: Gửi đồng bộ sự kiện vứt vũ khí cũ ra sàn cho cả phòng cùng thấy và cùng nhặt
+        // BỔ SUNG: Gửi đồng bộ sự kiện vứt vũ khí cũ ra sàn cho đồng đội cùng thấy
         public async Task SyncDropWeapon(string roomId, string weaponName, float posX, float posY, string groundWeaponId)
         {
             if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
