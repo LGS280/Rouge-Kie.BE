@@ -431,6 +431,34 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // BỔ SUNG: Gửi đồng bộ sự kiện mở rương vũ khí dùng chung trong phòng Co-op
+        public async Task SyncOpenChest(string roomId, string chestId, string weaponName, float spawnX, float spawnY)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.OthersInGroup(roomId).SendAsync("OnChestOpened", chestId, weaponName, spawnX, spawnY);
+            }
+        }
+
+        // BỔ SUNG: Gửi đồng bộ sự kiện nhặt vũ khí rơi trên sàn (xóa súng trên các máy còn lại)
+        public async Task SyncPickupGroundWeapon(string roomId, string groundWeaponId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.OthersInGroup(roomId).SendAsync("OnGroundWeaponPickedUp", groundWeaponId);
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             RoomManager.ConnectedUsers.TryAdd(Context.ConnectionId, 0);
