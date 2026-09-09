@@ -473,6 +473,20 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // BỔ SUNG: Gửi đồng bộ sự kiện Boss tấn công (xả đạn) cho các người chơi trong phòng
+        public async Task SyncBossAttack(string roomId, string bossId, float targetX, float targetY)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                await Clients.OthersInGroup(roomId).SendAsync("OnBossAttack", bossId, targetX, targetY);
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             RoomManager.ConnectedUsers.TryAdd(Context.ConnectionId, 0);
