@@ -65,18 +65,31 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             if (string.IsNullOrWhiteSpace(description)) description = "Nap Gem RogueKie";
             if (description.Length > 25) description = description.Substring(0, 25);
 
-            // 2. Tạo Transaction PENDING trong DB
+            // Kiểm tra shopItemId có tồn tại trong bảng ShopItems không trước khi gán để tránh lỗi Foreign Key
+            int? validShopItemId = null;
+            if (request.ShopItemId.HasValue && request.ShopItemId.Value > 0)
+            {
+                if (await _context.ShopItems.AnyAsync(s => s.ShopItemId == request.ShopItemId.Value))
+                {
+                    validShopItemId = request.ShopItemId.Value;
+                }
+            }
+
+            string savedRef = !string.IsNullOrEmpty(request.Description) ? request.Description : orderCode.ToString();
+            if (savedRef.Length > 100) savedRef = savedRef.Substring(0, 100);
+
+            // 2. Tạo Transaction PENDING trong Database
             var transaction = new Transaction
             {
                 UserId = userId,
-                ShopItemId = request.ShopItemId,
+                ShopItemId = validShopItemId,
                 OrderCode = orderCode,
                 TransactionType = "PAYMENT",
                 Amount = amount,
                 CurrencyType = string.IsNullOrEmpty(request.CurrencyType) ? "GEMS" : request.CurrencyType,
                 PaymentMethod = "PAYOS",
                 Status = "PENDING",
-                ReferenceCode = orderCode.ToString(),
+                ReferenceCode = savedRef,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -418,6 +431,119 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             {
                 profile.PremiumCurrency += gemsToAdd;
                 _logger.LogInformation($"[PayOSService] Cong {gemsToAdd} Gems cho User {transaction.UserId}. PremiumCurrency hien tai: {profile.PremiumCurrency}");
+            }
+
+            // Tự động mở khóa súng vĩnh viễn vào PlayerWeapons nếu đơn hàng mua súng VIP
+            string desc = transaction.ReferenceCode ?? "";
+            await AutoUnlockVietQRWeaponAsync(profile.ProfileId, desc, transaction.ShopItemId, transaction.Amount);
+        }
+
+        private async Task AutoUnlockVietQRWeaponAsync(int profileId, string description, int? shopItemId, int amount = 0)
+        {
+            WeaponConfig? weapon = null;
+
+            if (shopItemId.HasValue)
+            {
+                var shopItem = await _context.ShopItems.FindAsync(shopItemId.Value);
+                if (shopItem != null)
+                {
+                    weapon = await _context.WeaponConfigs
+                        .FirstOrDefaultAsync(w => w.WeaponName.ToLower() == shopItem.Name.ToLower() 
+                                               || w.PrefabName.ToLower().Contains(shopItem.Name.ToLower()) 
+                                               || shopItem.Name.ToLower().Contains(w.WeaponName.ToLower()));
+                }
+            }
+
+            string descLower = (description ?? "").ToLower();
+            if (weapon == null && (!string.IsNullOrEmpty(descLower) || amount == 2000))
+            {
+                if (descLower.Contains("missile"))
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("Missile"));
+                else if (descLower.Contains("rocket") || descLower.Contains("bazooka"))
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("Rocket"));
+                else if (descLower.Contains("ak") || descLower.Contains("gold") || amount == 2000)
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("AK_47A_Gold") || w.WeaponName.Contains("AK"));
+            }
+
+            // Nếu DB chưa có bản ghi WeaponConfig cho các loại vũ khí này, tự động khởi tạo luôn để đảm bảo không bị NULL
+            if (weapon == null && (!string.IsNullOrEmpty(descLower) || amount == 2000))
+            {
+                if (descLower.Contains("missile"))
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "Missile Launcher",
+                        PrefabName = "Missile_Launcher",
+                        WeaponType = "Launcher",
+                        Rarity = "Epic",
+                        FireRate = 1.2f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 0f,
+                        RecoilDistance = 0.4f,
+                        BulletId = 3
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+                else if (descLower.Contains("rocket") || descLower.Contains("bazooka"))
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "Rocket Launcher",
+                        PrefabName = "Rocket_Launcher",
+                        WeaponType = "Launcher",
+                        Rarity = "Epic",
+                        FireRate = 1.5f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 0f,
+                        RecoilDistance = 0.5f,
+                        BulletId = 3
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+                else if (descLower.Contains("ak") || descLower.Contains("gold") || amount == 2000)
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "AK-47 Gold",
+                        PrefabName = "AK_47A_Gold",
+                        WeaponType = "Rifle",
+                        Rarity = "Legendary",
+                        FireRate = 0.15f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 3.0f,
+                        RecoilDistance = 0.15f,
+                        BulletId = 4
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (weapon != null)
+            {
+                var playerWeapon = await _context.PlayerWeapons
+                    .FirstOrDefaultAsync(pw => pw.ProfileId == profileId && pw.WeaponConfigId == weapon.Id);
+
+                if (playerWeapon == null)
+                {
+                    playerWeapon = new PlayerWeapon
+                    {
+                        ProfileId = profileId,
+                        WeaponConfigId = weapon.Id,
+                        IsUnlocked = true,
+                        UnlockedAt = DateTime.UtcNow
+                    };
+                    _context.PlayerWeapons.Add(playerWeapon);
+                }
+                else
+                {
+                    playerWeapon.IsUnlocked = true;
+                    playerWeapon.UnlockedAt ??= DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"[PayOSService] Mo khoa thanh cong vu khi '{weapon.WeaponName}' ({weapon.PrefabName}) cho Profile {profileId}!");
             }
         }
 

@@ -156,6 +156,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 profile.StandardCurrency += coinsToAdd;
             }
 
+            // Tự động lưu mở khóa vào PlayerWeapons nếu vật phẩm là vũ khí
+            await AutoUnlockWeaponIfApplicableAsync(profile.ProfileId, shopItem);
+
             profile.UpdatedAt = System.DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
@@ -169,6 +172,109 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 RemainingPremiumCurrency = profile.PremiumCurrency,
                 PurchasedAt = System.DateTime.UtcNow
             };
+        }
+
+        private async Task AutoUnlockWeaponIfApplicableAsync(int profileId, ShopItem shopItem)
+        {
+            string itemName = shopItem.Name ?? "";
+            string lowerName = itemName.ToLower();
+
+            // Tìm WeaponConfig tương ứng trong Database
+            var weapon = await _context.WeaponConfigs
+                .FirstOrDefaultAsync(w => w.WeaponName.ToLower() == lowerName 
+                                       || w.PrefabName.ToLower().Contains(lowerName) 
+                                       || lowerName.Contains(w.WeaponName.ToLower()));
+
+            // Fallback theo từ khóa đặc trưng của súng
+            if (weapon == null)
+            {
+                if (lowerName.Contains("ak") || lowerName.Contains("gold"))
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("AK_47A_Gold") || w.WeaponName.Contains("AK"));
+                else if (lowerName.Contains("missile"))
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("Missile"));
+                else if (lowerName.Contains("rocket") || lowerName.Contains("bazooka"))
+                    weapon = await _context.WeaponConfigs.FirstOrDefaultAsync(w => w.PrefabName.Contains("Rocket"));
+            }
+
+            // Nếu WeaponConfig chưa có trong DB, tự động tạo mới
+            if (weapon == null)
+            {
+                if (lowerName.Contains("ak") || lowerName.Contains("gold"))
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "AK-47 Gold",
+                        PrefabName = "AK_47A_Gold",
+                        WeaponType = "Rifle",
+                        Rarity = "Legendary",
+                        FireRate = 0.15f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 3.0f,
+                        RecoilDistance = 0.15f,
+                        BulletId = 4
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+                else if (lowerName.Contains("missile"))
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "Missile Launcher",
+                        PrefabName = "Missile_Launcher",
+                        WeaponType = "Launcher",
+                        Rarity = "Epic",
+                        FireRate = 1.2f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 0f,
+                        RecoilDistance = 0.4f,
+                        BulletId = 3
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+                else if (lowerName.Contains("rocket") || lowerName.Contains("bazooka"))
+                {
+                    weapon = new WeaponConfig
+                    {
+                        WeaponName = "Rocket Launcher",
+                        PrefabName = "Rocket_Launcher",
+                        WeaponType = "Launcher",
+                        Rarity = "Epic",
+                        FireRate = 1.5f,
+                        BulletsPerShot = 1,
+                        SpreadAngle = 0f,
+                        RecoilDistance = 0.5f,
+                        BulletId = 3
+                    };
+                    _context.WeaponConfigs.Add(weapon);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (weapon != null)
+            {
+                var playerWeapon = await _context.PlayerWeapons
+                    .FirstOrDefaultAsync(pw => pw.ProfileId == profileId && pw.WeaponConfigId == weapon.Id);
+
+                if (playerWeapon == null)
+                {
+                    playerWeapon = new PlayerWeapon
+                    {
+                        ProfileId = profileId,
+                        WeaponConfigId = weapon.Id,
+                        IsUnlocked = true,
+                        UnlockedAt = System.DateTime.UtcNow
+                    };
+                    _context.PlayerWeapons.Add(playerWeapon);
+                }
+                else
+                {
+                    playerWeapon.IsUnlocked = true;
+                    playerWeapon.UnlockedAt ??= System.DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
