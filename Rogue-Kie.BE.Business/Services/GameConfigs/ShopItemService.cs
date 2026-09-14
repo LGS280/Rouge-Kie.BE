@@ -96,11 +96,38 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             var shopItem = await _context.ShopItems.FindAsync(shopItemId);
             if (shopItem == null)
             {
-                return new BuyItemResponse
+                // Tìm theo từ khóa trong trường hợp bảng ShopItems đã có dữ liệu nhưng ID khác 1, 2, 3
+                if (shopItemId == 1)
+                    shopItem = await _context.ShopItems.FirstOrDefaultAsync(s => s.Name.ToLower().Contains("ak") || s.Name.ToLower().Contains("gold"));
+                else if (shopItemId == 2)
+                    shopItem = await _context.ShopItems.FirstOrDefaultAsync(s => s.Name.ToLower().Contains("missile"));
+                else if (shopItemId == 3)
+                    shopItem = await _context.ShopItems.FirstOrDefaultAsync(s => s.Name.ToLower().Contains("rocket"));
+            }
+
+            if (shopItem == null)
+            {
+                // Danh mục vật phẩm tạm trong bộ nhớ C# (In-Memory) - Không chèn dữ liệu vào bảng ShopItems trên Database
+                if (shopItemId == 1)
                 {
-                    Success = false,
-                    Message = "Không tìm thấy vật phẩm trong Cửa Hàng."
-                };
+                    shopItem = new ShopItem { ShopItemId = 1, Name = "AK-47 Gold", ItemType = "WEAPON", Price = 500, CurrencyType = "GEM", Description = "AK-47 mạ vàng uy lực cao" };
+                }
+                else if (shopItemId == 2)
+                {
+                    shopItem = new ShopItem { ShopItemId = 2, Name = "Missile Launcher", ItemType = "WEAPON", Price = 800, CurrencyType = "GEM", Description = "Bắn tên lửa tầm xa" };
+                }
+                else if (shopItemId == 3)
+                {
+                    shopItem = new ShopItem { ShopItemId = 3, Name = "Rocket Launcher", ItemType = "WEAPON", Price = 1200, CurrencyType = "GEM", Description = "Súng phóng lựu diện rộng" };
+                }
+                else
+                {
+                    return new BuyItemResponse
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy vật phẩm trong Cửa Hàng."
+                    };
+                }
             }
 
             var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
@@ -115,19 +142,50 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     UpdatedAt = System.DateTime.UtcNow
                 };
                 _context.PlayerProfiles.Add(profile);
+                await _context.SaveChangesAsync();
             }
 
-            string currency = (shopItem.CurrencyType ?? "GEMS").ToUpper();
-            bool isGem = currency == "GEMS" || currency == "PREMIUM" || currency == "GEM";
+            // Kiểm tra nếu người chơi đã sở hữu vũ khí này thì không trừ tiền nữa
+            string itemName = shopItem.Name ?? "";
+            string lowerName = itemName.ToLower();
+            var existingWeapon = await _context.WeaponConfigs
+                .FirstOrDefaultAsync(w => w.WeaponName.ToLower() == lowerName 
+                                       || w.PrefabName.ToLower().Contains(lowerName) 
+                                       || lowerName.Contains(w.WeaponName.ToLower())
+                                       || (lowerName.Contains("ak") && w.PrefabName.Contains("AK"))
+                                       || (lowerName.Contains("missile") && w.PrefabName.Contains("Missile"))
+                                       || (lowerName.Contains("rocket") && w.PrefabName.Contains("Rocket")));
 
-            if (isGem)
+            if (existingWeapon != null)
+            {
+                var isAlreadyUnlocked = await _context.PlayerWeapons
+                    .AnyAsync(pw => pw.ProfileId == profile.ProfileId && pw.WeaponConfigId == existingWeapon.Id && pw.IsUnlocked);
+
+                if (isAlreadyUnlocked)
+                {
+                    return new BuyItemResponse
+                    {
+                        Success = false,
+                        Message = $"Bạn đã sở hữu vũ khí {shopItem.Name} rồi!",
+                        ShopItemId = shopItem.ShopItemId,
+                        ItemName = shopItem.Name,
+                        RemainingStandardCurrency = profile.StandardCurrency,
+                        RemainingPremiumCurrency = profile.PremiumCurrency
+                    };
+                }
+            }
+
+            string currency = (shopItem.CurrencyType ?? "GEM").ToUpper();
+            bool isRuby = currency == "RUBY" || currency == "RUBIES" || currency == "PREMIUM";
+
+            if (isRuby)
             {
                 if (profile.PremiumCurrency < shopItem.Price)
                 {
                     return new BuyItemResponse
                     {
                         Success = false,
-                        Message = $"Bạn không đủ Gem để mua vật phẩm này (Cần {shopItem.Price} Gem, bạn có {profile.PremiumCurrency} Gem).",
+                        Message = $"Bạn không đủ Ruby để mua vật phẩm này (Cần {shopItem.Price} Ruby, bạn có {profile.PremiumCurrency} Ruby).",
                         RemainingStandardCurrency = profile.StandardCurrency,
                         RemainingPremiumCurrency = profile.PremiumCurrency
                     };
@@ -136,24 +194,18 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             }
             else
             {
+                // Mua bằng Gem trong game (StandardCurrency)
                 if (profile.StandardCurrency < shopItem.Price)
                 {
                     return new BuyItemResponse
                     {
                         Success = false,
-                        Message = $"Bạn không đủ Vàng để mua vật phẩm này (Cần {shopItem.Price} Vàng, bạn có {profile.StandardCurrency} Vàng).",
+                        Message = $"Bạn không đủ Gem để mua vật phẩm này (Cần {shopItem.Price} Gem, bạn có {profile.StandardCurrency} Gem).",
                         RemainingStandardCurrency = profile.StandardCurrency,
                         RemainingPremiumCurrency = profile.PremiumCurrency
                     };
                 }
                 profile.StandardCurrency -= shopItem.Price;
-            }
-
-            // Nếu mua gói đổi Vàng bằng Gem
-            if (shopItem.ItemType == "EXCHANGE_COINS" || shopItem.ItemType == "COINS")
-            {
-                int coinsToAdd = shopItem.Price * 100; // 1 Gem = 100 Coins
-                profile.StandardCurrency += coinsToAdd;
             }
 
             // Tự động lưu mở khóa vào PlayerWeapons nếu vật phẩm là vũ khí
