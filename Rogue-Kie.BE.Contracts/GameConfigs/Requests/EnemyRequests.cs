@@ -12,9 +12,6 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
         public int BaseHealth { get; set; }
 
         [Required]
-        public int BaseDamage { get; set; }
-
-        [Required]
         public float MoveSpeed { get; set; }
 
         [Required]

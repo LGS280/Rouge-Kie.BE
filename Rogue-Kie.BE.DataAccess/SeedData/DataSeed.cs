@@ -49,10 +49,10 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
         public static void SeedGameConfigs(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<EnemyConfig>().HasData(
-                new EnemyConfig { Id = 1, EnemyName = "Slime", BaseHealth = 50, MoveSpeed = 2.0f, BaseDamage = 10, AttackSpeed = 1.5f, PrefabName = "SlimePrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new EnemyConfig { Id = 2, EnemyName = "Goblin", BaseHealth = 100, MoveSpeed = 3.5f, BaseDamage = 15, AttackSpeed = 1.2f, PrefabName = "GoblinPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new EnemyConfig { Id = 3, EnemyName = "Orc", BaseHealth = 250, MoveSpeed = 1.5f, BaseDamage = 30, AttackSpeed = 2.0f, PrefabName = "OrcPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, BaseDamage = 100, AttackSpeed = 0.5f, PrefabName = "DragonPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) }
+                new EnemyConfig { Id = 1, EnemyName = "Slime", BaseHealth = 50, MoveSpeed = 2.0f, AttackSpeed = 1.5f, PrefabName = "SlimePrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 2, EnemyName = "Goblin", BaseHealth = 100, MoveSpeed = 3.5f, AttackSpeed = 1.2f, PrefabName = "GoblinPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 3, EnemyName = "Orc", BaseHealth = 250, MoveSpeed = 1.5f, AttackSpeed = 2.0f, PrefabName = "OrcPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, AttackSpeed = 0.5f, PrefabName = "DragonPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) }
             );
 
             modelBuilder.Entity<BulletConfig>().HasData(
@@ -100,7 +100,9 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                     Name = "Kie Warrior",
                     Description = "A brave warrior from Kie kingdom",
                     BaseHealth = 100,
-                    BaseDamage = 15,
+                    BaseMana = 200,
+                    BaseArmor = 4,
+                    PrefabName = "Rookie",
                     SkillSet = "Slash, Shield",
                     UnlockPrice = 0,
                     CurrencyType = "Gold"
@@ -111,7 +113,9 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                     Name = "Kie Mage",
                     Description = "A master of elements from Kie academy",
                     BaseHealth = 80,
-                    BaseDamage = 25,
+                    BaseMana = 240,
+                    BaseArmor = 2,
+                    PrefabName = "Zero",
                     SkillSet = "Fireball, Teleport",
                     UnlockPrice = 100,
                     CurrencyType = "Gold"
