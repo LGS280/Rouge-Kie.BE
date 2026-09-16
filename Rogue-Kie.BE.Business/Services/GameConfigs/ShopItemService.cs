@@ -21,6 +21,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         public async Task<List<ShopItemResponse>> GetAllAsync()
         {
             return await _context.ShopItems
+                .OrderBy(s => s.ShopItemId)
                 .Select(s => new ShopItemResponse
                 {
                     ShopItemId = s.ShopItemId,
@@ -96,7 +97,7 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             var shopItem = await _context.ShopItems.FindAsync(shopItemId);
             if (shopItem == null)
             {
-                // Tìm theo từ khóa trong trường hợp bảng ShopItems đã có dữ liệu nhưng ID khác 1, 2, 3
+                // Fallback tìm theo từ khóa tên súng nếu ID trong DB lệch
                 if (shopItemId == 1)
                     shopItem = await _context.ShopItems.FirstOrDefaultAsync(s => s.Name.ToLower().Contains("ak") || s.Name.ToLower().Contains("gold"));
                 else if (shopItemId == 2)
@@ -107,27 +108,25 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
 
             if (shopItem == null)
             {
-                // Danh mục vật phẩm tạm trong bộ nhớ C# (In-Memory) - Không chèn dữ liệu vào bảng ShopItems trên Database
-                if (shopItemId == 1)
+                return new BuyItemResponse
                 {
-                    shopItem = new ShopItem { ShopItemId = 1, Name = "AK-47 Gold", ItemType = "WEAPON", Price = 500, CurrencyType = "GEM", Description = "AK-47 mạ vàng uy lực cao" };
-                }
-                else if (shopItemId == 2)
+                    Success = false,
+                    Message = "Không tìm thấy vật phẩm trong Cửa Hàng."
+                };
+            }
+
+            // Gói VIP yêu cầu thanh toán qua PayOS VietQR
+            string itemType = (shopItem.ItemType ?? "").ToUpper();
+            string currency = (shopItem.CurrencyType ?? "GEM").ToUpper();
+            if (itemType == "WEAPON_VIP" || currency == "VND")
+            {
+                return new BuyItemResponse
                 {
-                    shopItem = new ShopItem { ShopItemId = 2, Name = "Missile Launcher", ItemType = "WEAPON", Price = 800, CurrencyType = "GEM", Description = "Bắn tên lửa tầm xa" };
-                }
-                else if (shopItemId == 3)
-                {
-                    shopItem = new ShopItem { ShopItemId = 3, Name = "Rocket Launcher", ItemType = "WEAPON", Price = 1200, CurrencyType = "GEM", Description = "Súng phóng lựu diện rộng" };
-                }
-                else
-                {
-                    return new BuyItemResponse
-                    {
-                        Success = false,
-                        Message = "Không tìm thấy vật phẩm trong Cửa Hàng."
-                    };
-                }
+                    Success = false,
+                    Message = "Vật phẩm VIP yêu cầu quét mã VietQR để thanh toán.",
+                    ShopItemId = shopItem.ShopItemId,
+                    ItemName = shopItem.Name
+                };
             }
 
             var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
@@ -175,7 +174,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 }
             }
 
-            string currency = (shopItem.CurrencyType ?? "GEM").ToUpper();
             bool isRuby = currency == "RUBY" || currency == "RUBIES" || currency == "PREMIUM";
 
             if (isRuby)
