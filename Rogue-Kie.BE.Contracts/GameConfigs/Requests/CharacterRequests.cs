@@ -14,7 +14,14 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Requests
         public int BaseHealth { get; set; }
 
         [Required]
-        public int BaseDamage { get; set; }
+        public int BaseMana { get; set; }
+
+        [Required]
+        public int BaseArmor { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string PrefabName { get; set; } = string.Empty;
 
         [MaxLength(255)]
         public string? SkillSet { get; set; }

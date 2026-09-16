@@ -12,7 +12,6 @@ namespace Rogue_Kie.BE.DataAccess.Models
         public string EnemyName { get; set; }
 
         public int BaseHealth { get; set; }
-        public int BaseDamage { get; set; }
         public float MoveSpeed { get; set; }
         public float AttackSpeed { get; set; }
 
