@@ -26,7 +26,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     Id = e.Id,
                     EnemyName = e.EnemyName,
                     BaseHealth = e.BaseHealth,
-                    BaseDamage = e.BaseDamage,
                     MoveSpeed = e.MoveSpeed,
                     AttackSpeed = e.AttackSpeed,
                     PrefabName = e.PrefabName
@@ -44,7 +43,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 Id = e.Id,
                 EnemyName = e.EnemyName,
                 BaseHealth = e.BaseHealth,
-                BaseDamage = e.BaseDamage,
                 MoveSpeed = e.MoveSpeed,
                 AttackSpeed = e.AttackSpeed,
                 PrefabName = e.PrefabName
@@ -57,7 +55,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             {
                 EnemyName = request.EnemyName,
                 BaseHealth = request.BaseHealth,
-                BaseDamage = request.BaseDamage,
                 MoveSpeed = request.MoveSpeed,
                 AttackSpeed = request.AttackSpeed,
                 PrefabName = request.PrefabName
@@ -76,7 +73,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
 
             entity.EnemyName = request.EnemyName;
             entity.BaseHealth = request.BaseHealth;
-            entity.BaseDamage = request.BaseDamage;
             entity.MoveSpeed = request.MoveSpeed;
             entity.AttackSpeed = request.AttackSpeed;
             entity.PrefabName = request.PrefabName;

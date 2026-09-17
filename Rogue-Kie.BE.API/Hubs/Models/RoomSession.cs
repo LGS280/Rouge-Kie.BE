@@ -21,5 +21,15 @@ namespace Rogue_Kie.BE.API.Hubs.Models
         /// Tập hợp các ConnectionId của người chơi đã gục ngã/hy sinh trong phòng
         /// </summary>
         public HashSet<string> DeadPlayers { get; set; } = new HashSet<string>();
+
+        /// <summary>
+        /// Sĩ số tối đa của phòng chơi (mặc định 4 người)
+        /// </summary>
+        public int MaxPlayers { get; set; } = 4;
+
+        /// <summary>
+        /// Trạng thái phòng đã bắt đầu vào trận đấu hay chưa
+        /// </summary>
+        public bool IsGameStarted { get; set; } = false;
     }
 }

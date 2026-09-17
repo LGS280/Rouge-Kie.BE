@@ -27,7 +27,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     Name = c.Name,
                     Description = c.Description,
                     BaseHealth = c.BaseHealth,
-                    BaseDamage = c.BaseDamage,
+                    BaseMana = c.BaseMana,
+                    BaseArmor = c.BaseArmor,
+                    PrefabName = c.PrefabName,
                     SkillSet = c.SkillSet,
                     UnlockPrice = c.UnlockPrice,
                     CurrencyType = c.CurrencyType
@@ -46,7 +48,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 Name = c.Name,
                 Description = c.Description,
                 BaseHealth = c.BaseHealth,
-                BaseDamage = c.BaseDamage,
+                BaseMana = c.BaseMana,
+                BaseArmor = c.BaseArmor,
+                PrefabName = c.PrefabName,
                 SkillSet = c.SkillSet,
                 UnlockPrice = c.UnlockPrice,
                 CurrencyType = c.CurrencyType
@@ -60,7 +64,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 Name = request.Name,
                 Description = request.Description,
                 BaseHealth = request.BaseHealth,
-                BaseDamage = request.BaseDamage,
+                BaseMana = request.BaseMana,
+                BaseArmor = request.BaseArmor,
+                PrefabName = request.PrefabName,
                 SkillSet = request.SkillSet,
                 UnlockPrice = request.UnlockPrice,
                 CurrencyType = request.CurrencyType
@@ -80,7 +86,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.Name = request.Name;
             entity.Description = request.Description;
             entity.BaseHealth = request.BaseHealth;
-            entity.BaseDamage = request.BaseDamage;
+            entity.BaseMana = request.BaseMana;
+            entity.BaseArmor = request.BaseArmor;
+            entity.PrefabName = request.PrefabName;
             entity.SkillSet = request.SkillSet;
             entity.UnlockPrice = request.UnlockPrice;
             entity.CurrencyType = request.CurrencyType;

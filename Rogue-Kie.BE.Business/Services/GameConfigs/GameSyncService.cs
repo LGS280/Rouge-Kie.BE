@@ -23,7 +23,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     Id = e.Id,
                     EnemyName = e.EnemyName,
                     BaseHealth = e.BaseHealth,
-                    BaseDamage = e.BaseDamage,
                     MoveSpeed = e.MoveSpeed,
                     AttackSpeed = e.AttackSpeed,
                     PrefabName = e.PrefabName

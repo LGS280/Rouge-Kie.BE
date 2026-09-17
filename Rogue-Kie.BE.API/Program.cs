@@ -51,6 +51,7 @@ builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IGameSyncS
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICharacterService, Rogue_Kie.BE.Business.Services.GameConfigs.CharacterService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICosmeticService, Rogue_Kie.BE.Business.Services.GameConfigs.CosmeticService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IShopItemService, Rogue_Kie.BE.Business.Services.GameConfigs.ShopItemService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IPlayerWeaponService, Rogue_Kie.BE.Business.Services.GameConfigs.PlayerWeaponService>();
 
 // Register PayOS Payment Service
 builder.Services.Configure<Rogue_Kie.BE.Contracts.Payment.PayOSSettings>(builder.Configuration.GetSection("PayOS"));

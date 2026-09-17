@@ -18,7 +18,13 @@ namespace Rogue_Kie.BE.DataAccess.Models
 
         public int BaseHealth { get; set; }
 
-        public int BaseDamage { get; set; }
+        public int BaseMana { get; set; }
+
+        public int BaseArmor { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string PrefabName { get; set; } = string.Empty;
 
         [MaxLength(255)]
         public string? SkillSet { get; set; }
