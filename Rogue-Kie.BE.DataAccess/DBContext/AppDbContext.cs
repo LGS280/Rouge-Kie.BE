@@ -20,6 +20,7 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
         public DbSet<WeaponConfig> WeaponConfigs { get; set; }
         public DbSet<LevelConfig> LevelConfigs { get; set; }
         public DbSet<BuffConfig> BuffConfigs { get; set; }
+        public DbSet<MaintenanceConfig> MaintenanceConfigs { get; set; }
 
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
@@ -98,6 +99,7 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
             modelBuilder.Entity<WeaponConfig>().ToTable("WeaponConfigs");
             modelBuilder.Entity<LevelConfig>().ToTable("LevelConfigs");
             modelBuilder.Entity<BuffConfig>().ToTable("BuffConfigs");
+            modelBuilder.Entity<MaintenanceConfig>().ToTable("MaintenanceConfigs");
 
             // New mappings
             modelBuilder.Entity<RefreshToken>(entity =>
