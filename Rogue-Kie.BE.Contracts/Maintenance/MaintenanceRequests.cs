@@ -21,9 +21,6 @@ namespace Rogue_Kie.BE.Contracts.Maintenance
 
         [Required(ErrorMessage = "Thời gian kết thúc là bắt buộc")]
         public DateTime EndTime { get; set; }
-
-        [MaxLength(20)]
-        public string Status { get; set; } = "Active"; // Active, Completed, Cancelled
     }
 
     /// <summary>
@@ -46,6 +43,6 @@ namespace Rogue_Kie.BE.Contracts.Maintenance
         public DateTime EndTime { get; set; }
 
         [MaxLength(20)]
-        public string Status { get; set; } = "Active"; // Active, Completed, Cancelled
+        public string? Status { get; set; } // Scheduled, Active, Completed, Cancelled
     }
 }
