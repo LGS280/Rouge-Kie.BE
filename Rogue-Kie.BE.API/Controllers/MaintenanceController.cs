@@ -32,6 +32,21 @@ namespace Rogue_Kie.BE.API.Controllers
         }
 
         /// <summary>
+        /// API công khai lấy thông tin đợt bảo trì sắp tới gần nhất (phục vụ thông báo lịch)
+        /// </summary>
+        [HttpGet("upcoming")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUpcoming()
+        {
+            var upcoming = await _maintenanceService.GetUpcomingMaintenanceAsync();
+            if (upcoming == null)
+            {
+                return Ok(new { hasUpcoming = false, message = "Không có lịch bảo trì nào sắp diễn ra." });
+            }
+            return Ok(new { hasUpcoming = true, data = upcoming });
+        }
+
+        /// <summary>
         /// Lấy toàn bộ danh sách lịch bảo trì (Dành cho Quản trị viên)
         /// </summary>
         [HttpGet]
