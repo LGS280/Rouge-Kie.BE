@@ -15,5 +15,6 @@ namespace Rogue_Kie.BE.Business.Services.Maintenance
         Task<MaintenanceResponse?> UpdateAsync(int id, UpdateMaintenanceRequest request);
         Task<bool> DeleteAsync(int id);
         Task<CurrentMaintenanceStatusResponse> GetCurrentMaintenanceStatusAsync();
+        Task<UpcomingMaintenanceInfo?> GetUpcomingMaintenanceAsync();
     }
 }

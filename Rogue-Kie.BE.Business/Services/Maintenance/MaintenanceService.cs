@@ -180,7 +180,7 @@ namespace Rogue_Kie.BE.Business.Services.Maintenance
             var now = DateTime.UtcNow;
             await AutoUpdateStatusesAsync(now);
 
-            // Tìm đợt bảo trì Active hoặc Scheduled có khung giờ bao trùm thời điểm hiện tại
+            // 1. Tìm đợt bảo trì Active hoặc Scheduled có khung giờ bao trùm thời điểm hiện tại
             var activeMaintenance = await _context.MaintenanceConfigs
                 .Where(m => (m.Status == "Active" || m.Status == "Scheduled") && m.StartTime <= now && m.EndTime >= now)
                 .OrderByDescending(m => m.EndTime)
@@ -196,9 +196,16 @@ namespace Rogue_Kie.BE.Business.Services.Maintenance
                     Message = activeMaintenance.Message,
                     StartTime = ToVnOffset(activeMaintenance.StartTime),
                     EndTime = ToVnOffset(activeMaintenance.EndTime),
-                    RemainingMinutes = remaining
+                    RemainingMinutes = remaining,
+                    HasUpcomingMaintenance = false,
+                    UpcomingMaintenance = null
                 };
             }
+
+            // 2. Tìm đợt bảo trì sắp diễn ra gần nhất
+            var upcomingInfo = await FindUpcomingMaintenanceAsync(now);
+            // Chỉ kích hoạt cờ thông báo trước nếu đợt bảo trì diễn ra trong vòng 48 giờ tới
+            bool hasUpcoming = upcomingInfo != null && upcomingInfo.HoursUntilStart <= 48;
 
             return new CurrentMaintenanceStatusResponse
             {
@@ -207,7 +214,42 @@ namespace Rogue_Kie.BE.Business.Services.Maintenance
                 Message = string.Empty,
                 StartTime = null,
                 EndTime = null,
-                RemainingMinutes = null
+                RemainingMinutes = null,
+                HasUpcomingMaintenance = hasUpcoming,
+                UpcomingMaintenance = hasUpcoming ? upcomingInfo : null
+            };
+        }
+
+        public async Task<UpcomingMaintenanceInfo?> GetUpcomingMaintenanceAsync()
+        {
+            var now = DateTime.UtcNow;
+            await AutoUpdateStatusesAsync(now);
+            return await FindUpcomingMaintenanceAsync(now);
+        }
+
+        private async Task<UpcomingMaintenanceInfo?> FindUpcomingMaintenanceAsync(DateTime now)
+        {
+            // Tìm đợt bảo trì Scheduled gần nhất có thời gian bắt đầu trong tương lai
+            var upcoming = await _context.MaintenanceConfigs
+                .Where(m => m.Status == "Scheduled" && m.StartTime > now)
+                .OrderBy(m => m.StartTime)
+                .FirstOrDefaultAsync();
+
+            if (upcoming == null) return null;
+
+            var timeUntil = upcoming.StartTime - now;
+            var hoursUntil = (int)Math.Max(0, Math.Ceiling(timeUntil.TotalHours));
+            var minutesUntil = (int)Math.Max(0, Math.Ceiling(timeUntil.TotalMinutes));
+
+            return new UpcomingMaintenanceInfo
+            {
+                Id = upcoming.Id,
+                Title = upcoming.Title,
+                Message = upcoming.Message,
+                StartTime = ToVnOffset(upcoming.StartTime),
+                EndTime = ToVnOffset(upcoming.EndTime),
+                HoursUntilStart = hoursUntil,
+                MinutesUntilStart = minutesUntil
             };
         }
 
