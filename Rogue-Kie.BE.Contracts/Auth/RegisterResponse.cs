@@ -13,5 +13,9 @@ namespace Rogue_Kie.BE.Contracts.Auth
         public string? Email { get; set; }
 
         public string? Role { get; set; }
+
+        public bool IsMaintenance { get; set; } = false;
+
+        public Rogue_Kie.BE.Contracts.Maintenance.CurrentMaintenanceStatusResponse? Maintenance { get; set; }
     }
 }

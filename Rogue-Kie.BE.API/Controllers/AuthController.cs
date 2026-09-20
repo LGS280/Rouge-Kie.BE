@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Rogue_Kie.BE.Contracts.Auth;
 using Rogue_Kie.BE.Business.Services.Auth;
+using Rogue_Kie.BE.Business.Services.Maintenance;
 
 namespace Rogue_Kie.BE.API.Controllers
 {
@@ -10,11 +12,13 @@ namespace Rogue_Kie.BE.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
+        private readonly IMaintenanceService _maintenanceService;
 
-        public AuthController(IAuthService authService, ITokenService tokenService)
+        public AuthController(IAuthService authService, ITokenService tokenService, IMaintenanceService maintenanceService)
         {
             _authService = authService;
             _tokenService = tokenService;
+            _maintenanceService = maintenanceService;
         }
 
         // API gửi mã OTP đăng ký về email.
@@ -28,6 +32,17 @@ namespace Rogue_Kie.BE.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                // Kiểm tra bảo trì hệ thống
+                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+                if (maintStatus.IsUnderMaintenance)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new SendRegisterOtpResponse
+                    {
+                        Success = false,
+                        Message = $"Hệ thống đang bảo trì ({maintStatus.Title}). Vui lòng quay lại sau khi bảo trì hoàn tất."
+                    });
                 }
 
                 await _authService.SendRegisterOtpAsync(request.Email);
@@ -67,6 +82,19 @@ namespace Rogue_Kie.BE.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                // Kiểm tra bảo trì hệ thống
+                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+                if (maintStatus.IsUnderMaintenance)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new RegisterResponse
+                    {
+                        Success = false,
+                        IsMaintenance = true,
+                        Maintenance = maintStatus,
+                        Message = $"Hệ thống đang bảo trì ({maintStatus.Title}). Vui lòng quay lại sau khi bảo trì hoàn tất."
+                    });
                 }
 
                 var user = await _authService.RegisterAsync(
@@ -136,6 +164,26 @@ namespace Rogue_Kie.BE.API.Controllers
                     });
                 }
 
+                // Kiểm tra bảo trì hệ thống (Chỉ cho phép Admin và Developer truy cập khi đang bảo trì)
+                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+                if (maintStatus.IsUnderMaintenance)
+                {
+                    string userRole = user.Role?.Name ?? "User";
+                    bool isPrivileged = userRole.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                                        userRole.Equals("Developer", System.StringComparison.OrdinalIgnoreCase);
+
+                    if (!isPrivileged)
+                    {
+                        return StatusCode(StatusCodes.Status503ServiceUnavailable, new LoginResponse
+                        {
+                            Success = false,
+                            IsMaintenance = true,
+                            Maintenance = maintStatus,
+                            Message = $"Máy chủ đang bảo trì: {maintStatus.Title}. Dự kiến hoàn tất trong {maintStatus.RemainingMinutes} phút nữa."
+                        });
+                    }
+                }
+
                 // Tạo JWT để Unity lưu vào PlayerPrefs và gửi kèm Authorization cho API cần đăng nhập.
                 var token = _tokenService.GenerateToken(user);
                 var refreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
@@ -189,6 +237,26 @@ namespace Rogue_Kie.BE.API.Controllers
                     });
                 }
 
+                // Kiểm tra bảo trì hệ thống (Chỉ cho phép Admin và Developer truy cập khi đang bảo trì)
+                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+                if (maintStatus.IsUnderMaintenance)
+                {
+                    string userRole = user.Role?.Name ?? "User";
+                    bool isPrivileged = userRole.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                                        userRole.Equals("Developer", System.StringComparison.OrdinalIgnoreCase);
+
+                    if (!isPrivileged)
+                    {
+                        return StatusCode(StatusCodes.Status503ServiceUnavailable, new LoginResponse
+                        {
+                            Success = false,
+                            IsMaintenance = true,
+                            Maintenance = maintStatus,
+                            Message = $"Máy chủ đang bảo trì: {maintStatus.Title}. Dự kiến hoàn tất trong {maintStatus.RemainingMinutes} phút nữa."
+                        });
+                    }
+                }
+
                 var token = _tokenService.GenerateToken(user);
                 var refreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
 
@@ -233,6 +301,26 @@ namespace Rogue_Kie.BE.API.Controllers
             if (user == null)
             {
                 return Unauthorized(new { Message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+            }
+
+            // Kiểm tra bảo trì hệ thống khi Refresh Token
+            var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+            if (maintStatus.IsUnderMaintenance)
+            {
+                string userRole = user.Role?.Name ?? "User";
+                bool isPrivileged = userRole.Equals("Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                                    userRole.Equals("Developer", System.StringComparison.OrdinalIgnoreCase);
+
+                if (!isPrivileged)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                    {
+                        Success = false,
+                        IsMaintenance = true,
+                        Maintenance = maintStatus,
+                        Message = $"Máy chủ đang bảo trì ({maintStatus.Title})."
+                    });
+                }
             }
 
             var newAccessToken = _tokenService.GenerateToken(user);
