@@ -17,8 +17,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<Rogue_Kie.BE.API.Interceptors.ConfigAuditInterceptor>();
+
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddInterceptors(sp.GetRequiredService<Rogue_Kie.BE.API.Interceptors.ConfigAuditInterceptor>());
+});
 
 // CORS - allow Unity editor / other origins during development
 builder.Services.AddCors(options =>
@@ -53,6 +59,7 @@ builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.ICosmeticS
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IShopItemService, Rogue_Kie.BE.Business.Services.GameConfigs.ShopItemService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.GameConfigs.IPlayerWeaponService, Rogue_Kie.BE.Business.Services.GameConfigs.PlayerWeaponService>();
 builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.Maintenance.IMaintenanceService, Rogue_Kie.BE.Business.Services.Maintenance.MaintenanceService>();
+builder.Services.AddScoped<Rogue_Kie.BE.Business.Services.ConfigAuditLogs.IConfigAuditLogService, Rogue_Kie.BE.Business.Services.ConfigAuditLogs.ConfigAuditLogService>();
 builder.Services.AddHostedService<Rogue_Kie.BE.API.Workers.MaintenanceStatusWorker>();
 
 // Register PayOS Payment Service
