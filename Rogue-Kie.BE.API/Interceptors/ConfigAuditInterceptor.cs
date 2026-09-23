@@ -33,7 +33,8 @@ namespace Rogue_Kie.BE.API.Interceptors
             typeof(WaveEnemyDetail),
             typeof(Character),
             typeof(CosmeticItem),
-            typeof(ShopItem)
+            typeof(ShopItem),
+            typeof(MaintenanceConfig)
         };
 
         public ConfigAuditInterceptor(IHttpContextAccessor httpContextAccessor)
