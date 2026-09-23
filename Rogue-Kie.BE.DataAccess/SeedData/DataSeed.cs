@@ -74,11 +74,11 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<LevelConfig>().HasData(
-                new LevelConfig { Id = 1, StageId = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f, BaseRoomCount = 7, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1 },
-                new LevelConfig { Id = 2, StageId = 1, FloorNumber = 2, DifficultyMultiplier = 1.2f, BaseRoomCount = 8, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1 },
-                new LevelConfig { Id = 3, StageId = 1, FloorNumber = 3, DifficultyMultiplier = 1.5f, BaseRoomCount = 9, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1 },
-                new LevelConfig { Id = 4, StageId = 1, FloorNumber = 4, DifficultyMultiplier = 2.0f, BaseRoomCount = 10, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1 },
-                new LevelConfig { Id = 5, StageId = 1, FloorNumber = 5, DifficultyMultiplier = 3.0f, BaseRoomCount = 11, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1 } // Boss stage
+                new LevelConfig { Id = 1, StageId = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f, BaseRoomCount = 7, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 0 },
+                new LevelConfig { Id = 2, StageId = 1, FloorNumber = 2, DifficultyMultiplier = 1.2f, BaseRoomCount = 8, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 0 },
+                new LevelConfig { Id = 3, StageId = 1, FloorNumber = 3, DifficultyMultiplier = 1.5f, BaseRoomCount = 9, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 },
+                new LevelConfig { Id = 4, StageId = 1, FloorNumber = 4, DifficultyMultiplier = 2.0f, BaseRoomCount = 10, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 },
+                new LevelConfig { Id = 5, StageId = 1, FloorNumber = 5, DifficultyMultiplier = 3.0f, BaseRoomCount = 11, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 } // Boss stage
             );
 
             modelBuilder.Entity<BuffConfig>().HasData(
