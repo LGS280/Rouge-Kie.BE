@@ -19,5 +19,8 @@ namespace Rogue_Kie.BE.DataAccess.Models
         public float CoopMobHPMultiplier { get; set; } = 0.4f;
         public float CoopBossHPMultiplier { get; set; } = 0.6f;
         public int CoopExtraMobsPerRoom { get; set; } = 1;
+
+        public int ChestRoomCount { get; set; } = 1;
+        public int CoopExtraChestRooms { get; set; } = 0;
     }
 }

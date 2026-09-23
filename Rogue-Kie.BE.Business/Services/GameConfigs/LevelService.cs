@@ -31,7 +31,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     CoopExtraRooms = l.CoopExtraRooms,
                     CoopMobHPMultiplier = l.CoopMobHPMultiplier,
                     CoopBossHPMultiplier = l.CoopBossHPMultiplier,
-                    CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom
+                    CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom,
+                    ChestRoomCount = l.ChestRoomCount,
+                    CoopExtraChestRooms = l.CoopExtraChestRooms
                 })
                 .ToListAsync();
         }
@@ -51,7 +53,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 CoopExtraRooms = l.CoopExtraRooms,
                 CoopMobHPMultiplier = l.CoopMobHPMultiplier,
                 CoopBossHPMultiplier = l.CoopBossHPMultiplier,
-                CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom
+                CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom,
+                ChestRoomCount = l.ChestRoomCount,
+                CoopExtraChestRooms = l.CoopExtraChestRooms
             };
         }
 
@@ -66,7 +70,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 CoopExtraRooms = request.CoopExtraRooms,
                 CoopMobHPMultiplier = request.CoopMobHPMultiplier,
                 CoopBossHPMultiplier = request.CoopBossHPMultiplier,
-                CoopExtraMobsPerRoom = request.CoopExtraMobsPerRoom
+                CoopExtraMobsPerRoom = request.CoopExtraMobsPerRoom,
+                ChestRoomCount = request.ChestRoomCount,
+                CoopExtraChestRooms = request.CoopExtraChestRooms
             };
 
             _context.LevelConfigs.Add(entity);
@@ -88,6 +94,8 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.CoopMobHPMultiplier = request.CoopMobHPMultiplier;
             entity.CoopBossHPMultiplier = request.CoopBossHPMultiplier;
             entity.CoopExtraMobsPerRoom = request.CoopExtraMobsPerRoom;
+            entity.ChestRoomCount = request.ChestRoomCount;
+            entity.CoopExtraChestRooms = request.CoopExtraChestRooms;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);

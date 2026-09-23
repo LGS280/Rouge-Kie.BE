@@ -12,5 +12,8 @@ namespace Rogue_Kie.BE.Contracts.GameConfigs.Responses
         public float CoopMobHPMultiplier { get; set; }
         public float CoopBossHPMultiplier { get; set; }
         public int CoopExtraMobsPerRoom { get; set; }
+
+        public int ChestRoomCount { get; set; }
+        public int CoopExtraChestRooms { get; set; }
     }
 }
