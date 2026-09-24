@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Rogue_Kie.BE.API.Hubs;
 using Rogue_Kie.BE.API.Hubs.Models;
@@ -22,13 +23,15 @@ namespace Rogue_Kie.BE.API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IHubContext<GameHub> _hubContext;
 
         /// <summary>
-        /// Khởi tạo Controller với Dependency Injection AppDbContext
+        /// Khởi tạo Controller với Dependency Injection AppDbContext và IHubContext<GameHub>
         /// </summary>
-        public AdminController(AppDbContext context)
+        public AdminController(AppDbContext context, IHubContext<GameHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -394,6 +397,23 @@ namespace Rogue_Kie.BE.API.Controllers
                 // Chuyển cờ IsActive sang false để khóa tài khoản
                 user.IsActive = false;
                 await _context.SaveChangesAsync();
+
+                // Phát tín hiệu thời gian thực qua SignalR để đá người chơi ngay lập tức (tiếng Anh)
+                string banReasonEn = "Your account has been suspended by an Administrator. You have been disconnected.";
+                await _hubContext.Clients.All.SendAsync("OnUserBanned", user.Username, banReasonEn);
+
+                // Dọn dẹp phòng Co-op nếu user này đang tham gia
+                foreach (var kvp in RoomManager.ActiveRooms)
+                {
+                    var room = kvp.Value;
+                    var playerInRoom = room.Players.FirstOrDefault(p => string.Equals(p.Username, user.Username, StringComparison.OrdinalIgnoreCase));
+                    if (playerInRoom != null)
+                    {
+                        room.Players.Remove(playerInRoom);
+                        RoomManager.ConnectionToRoom.TryRemove(playerInRoom.ConnectionId, out _);
+                        await _hubContext.Clients.Group(room.RoomCode).SendAsync("OnPlayerDisconnected", playerInRoom.Username, playerInRoom.ConnectionId);
+                    }
+                }
 
                 return Ok(new
                 {
