@@ -1,4 +1,4 @@
-﻿using Google.Apis.Auth;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Rogue_Kie.BE.Business.Services.Email;
@@ -308,7 +308,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             // NgÄƒn cháº·n tÃ i khoáº£n bá»‹ Admin khÃ³a (Block/Lock) tiáº¿p tá»¥c truy cáº­p há»‡ thá»‘ng.
             if (!user.IsActive)
             {
-                throw new InvalidOperationException("TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a do vi pháº¡m quy Ä‘á»‹nh.");
+                throw new InvalidOperationException("Your account has been suspended by an Administrator.");
             }
 
             // So sÃ¡nh password nháº­p vÃ o vá»›i password hash trong database.
@@ -435,7 +435,12 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 return null;
             }
 
-            // Thu há»“i token cÅ© (Xoay vÃ²ng Refresh Token)
+            if (storedToken.User != null && !storedToken.User.IsActive)
+            {
+                return null;
+            }
+
+            // Thu hồi token cũ (Xoay vòng Refresh Token)
             storedToken.Revoked = true;
             _context.RefreshTokens.Update(storedToken);
             await _context.SaveChangesAsync();
