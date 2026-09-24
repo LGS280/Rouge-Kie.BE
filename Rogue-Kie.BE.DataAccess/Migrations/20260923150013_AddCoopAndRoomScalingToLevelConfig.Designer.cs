@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923150013_AddCoopAndRoomScalingToLevelConfig")]
+    partial class AddCoopAndRoomScalingToLevelConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -613,14 +616,8 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                     b.Property<int>("BaseRoomCount")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ChestRoomCount")
-                        .HasColumnType("integer");
-
                     b.Property<float>("CoopBossHPMultiplier")
                         .HasColumnType("real");
-
-                    b.Property<int>("CoopExtraChestRooms")
-                        .HasColumnType("integer");
 
                     b.Property<int>("CoopExtraMobsPerRoom")
                         .HasColumnType("integer");
@@ -649,9 +646,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 1,
                             BaseRoomCount = 7,
-                            ChestRoomCount = 1,
                             CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 0,
                             CoopExtraMobsPerRoom = 1,
                             CoopExtraRooms = 2,
                             CoopMobHPMultiplier = 0.4f,
@@ -663,9 +658,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 2,
                             BaseRoomCount = 8,
-                            ChestRoomCount = 1,
                             CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 0,
                             CoopExtraMobsPerRoom = 1,
                             CoopExtraRooms = 2,
                             CoopMobHPMultiplier = 0.4f,
@@ -677,9 +670,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 3,
                             BaseRoomCount = 9,
-                            ChestRoomCount = 1,
                             CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
                             CoopExtraMobsPerRoom = 1,
                             CoopExtraRooms = 2,
                             CoopMobHPMultiplier = 0.4f,
@@ -691,9 +682,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 4,
                             BaseRoomCount = 10,
-                            ChestRoomCount = 1,
                             CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
                             CoopExtraMobsPerRoom = 1,
                             CoopExtraRooms = 2,
                             CoopMobHPMultiplier = 0.4f,
@@ -705,9 +694,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         {
                             Id = 5,
                             BaseRoomCount = 11,
-                            ChestRoomCount = 1,
                             CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
                             CoopExtraMobsPerRoom = 1,
                             CoopExtraRooms = 2,
                             CoopMobHPMultiplier = 0.4f,
@@ -1253,7 +1240,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$v54f0cb5O5J3KqZjTgNCK.08NtGhwbCDxg0ByNrm4wc.FSzecw6xK",
+                            Password = "$2a$11$DvIPBLxZzaD5Mi44U65Pue0YRdJ8OB1PBFfhYysvoL0OfszqknEKe",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -1263,7 +1250,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "guest@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$8PQzVVGuV0LPDGvE1zz0dukKaSSW.j5GU9n91J44/Jnhl5ReRh2DC",
+                            Password = "$2a$11$LsyW2Rl0KylOJgF/Pnin0u8BmK.Ek5HJJbyjHherflqovrjUqvubO",
                             RoleId = 4,
                             Username = "guest"
                         });

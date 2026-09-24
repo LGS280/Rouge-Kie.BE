@@ -1,4 +1,4 @@
-using Google.Apis.Auth;
+﻿using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Rogue_Kie.BE.Business.Services.Email;
@@ -27,15 +27,15 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _otpCooldowns = new();
 
-        // Tạo và gửi OTP cho email đăng ký.
-        // Nếu lỗi ở chức năng này, kiểm tra email đã tồn tại, cooldown OTP và cấu hình SMTP.
+        // Create and send OTP for registering email.
+        // If there is an error in this function, check if the email already exists, OTP cooldown, and SMTP configuration.
         public async Task SendRegisterOtpAsync(string email)
         {
             var normalizedEmail = NormalizeEmail(email);
 
             if (string.IsNullOrWhiteSpace(normalizedEmail))
             {
-                throw new ArgumentException("Email không hợp lệ.");
+                throw new ArgumentException("Email is not valid.");
             }
 
             if (_otpCooldowns.TryGetValue(normalizedEmail, out var lastSent))
@@ -44,7 +44,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 if (secondsSinceLastSent < OtpResendCooldownSeconds)
                 {
                     var waitTime = OtpResendCooldownSeconds - (int)secondsSinceLastSent;
-                    throw new InvalidOperationException($"Vui lòng đợi {waitTime} giây trước khi yêu cầu gửi lại OTP.");
+                    throw new InvalidOperationException($"Please wait {waitTime} seconds before requesting a new OTP.");
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (emailExists)
             {
-                throw new InvalidOperationException("Email đã được sử dụng.");
+                throw new InvalidOperationException("Email is already in use.");
             }
 
             // OTP via DB is deprecated by new DBML. Just send mock OTP or bypass.
@@ -65,29 +65,104 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             _otpCooldowns[normalizedEmail] = DateTime.UtcNow;
         }
 
-        // Đăng ký tài khoản mới trực tiếp không cần lưu/đối chiếu OTP qua DB.
+        // Register a new account directly without storing/verifying OTP via DB.
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Otp, DateTime Expiry)> _resetOtps = new();
+
+        public async Task SendForgotPasswordOtpAsync(string email)
+        {
+            var normalizedEmail = NormalizeEmail(email);
+            if (string.IsNullOrWhiteSpace(normalizedEmail))
+            {
+                throw new ArgumentException("Email is not valid.");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            if (user == null)
+            {
+                // Để bảo mật, không báo lỗi rõ ràng nếu email không tồn tại.
+                return;
+            }
+
+            if (_otpCooldowns.TryGetValue(normalizedEmail, out var lastSent))
+            {
+                var secondsSinceLastSent = (DateTime.UtcNow - lastSent).TotalSeconds;
+                if (secondsSinceLastSent < OtpResendCooldownSeconds)
+                {
+                    var waitTime = OtpResendCooldownSeconds - (int)secondsSinceLastSent;
+                    throw new InvalidOperationException($"Please wait {waitTime} seconds before requesting a new OTP.");
+                }
+            }
+
+            var otpCode = GenerateOtpCode();
+            _resetOtps[normalizedEmail] = (otpCode, DateTime.UtcNow.AddMinutes(OtpExpiryMinutes));
+            
+            await _emailService.SendForgotPasswordOtpAsync(normalizedEmail, otpCode);
+            _otpCooldowns[normalizedEmail] = DateTime.UtcNow;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string otpCode, string newPassword)
+        {
+            var normalizedEmail = NormalizeEmail(email);
+
+            if (!_resetOtps.TryGetValue(normalizedEmail, out var resetData))
+            {
+                throw new InvalidOperationException("OTP code is invalid or has expired.");
+            }
+
+            if (resetData.Expiry < DateTime.UtcNow)
+            {
+                _resetOtps.TryRemove(normalizedEmail, out _);
+                throw new InvalidOperationException("OTP code has expired. Please request a new code.");
+            }
+
+            if (resetData.Otp != otpCode)
+            {
+                throw new InvalidOperationException("OTP code is incorrect.");
+            }
+
+            if (newPassword.Length < 6 || newPassword.Length > 255)
+            {
+                throw new ArgumentException("New password must be between 6 and 255 characters.");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            if (user == null)
+            {
+                throw new InvalidOperationException("Account does not exist.");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            // Xóa OTP sau khi dùng thành công
+            _resetOtps.TryRemove(normalizedEmail, out _);
+
+            return true;
+        }
+
         public async Task<User?> RegisterAsync(string username, string email, string password, string otpCode)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("Username và Password không được để trống.");
+                throw new ArgumentException("Username and Password cannot be empty.");
             }
 
             var normalizedEmail = NormalizeEmail(email);
 
             if (string.IsNullOrWhiteSpace(normalizedEmail))
             {
-                throw new ArgumentException("Email không hợp lệ.");
+                throw new ArgumentException("Email is not valid.");
             }
 
             if (username.Length < 3 || username.Length > 50)
             {
-                throw new ArgumentException("Username phải từ 3 đến 50 ký tự.");
+                throw new ArgumentException("Username must be between 3 and 50 characters.");
             }
 
             if (password.Length < 6 || password.Length > 255)
             {
-                throw new ArgumentException("Password phải từ 6 đến 255 ký tự.");
+                throw new ArgumentException("Password must be between 6 and 255 characters.");
             }
 
             // Không cho trùng username hoặc email vì cả hai đều dùng để định danh đăng nhập.
@@ -96,7 +171,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (existingUser)
             {
-                throw new InvalidOperationException("Username hoặc Email đã tồn tại.");
+                throw new InvalidOperationException("Username or Email already exists.");
             }
 
             var playerRole = await _context.Roles
@@ -104,10 +179,10 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (playerRole == null)
             {
-                throw new InvalidOperationException("Role Player không tồn tại.");
+                throw new InvalidOperationException("Role Player does not exist.");
             }
 
-            // Lưu password đã hash, không lưu password gốc vào database.
+            // Save the hashed password, do not store the plain password in the database.
             var user = new User
             {
                 Username = username.Trim(),
@@ -125,20 +200,20 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             return user;
         }
 
-        // Đăng nhập bằng username hoặc email.
-        // Unity vẫn gửi field "username", nhưng giá trị có thể là username hoặc email.
-        // Dang nhap bang Google/Gmail. Unity gui Google ID token len backend de verify.
+        // Login with username or email.
+        // Unity still sends the field "username", but the value can be either username or email.
+        // Login with Google/Gmail. Unity sends Google ID token to backend for verification.
         public async Task<User?> LoginWithGoogleAsync(string idToken)
         {
             if (string.IsNullOrWhiteSpace(idToken))
             {
-                throw new ArgumentException("Google ID token khong duoc de trong.");
+                throw new ArgumentException("Google ID token cannot be empty.");
             }
 
             var clientIds = GetGoogleClientIds();
             if (clientIds.Count == 0)
             {
-                throw new InvalidOperationException("GoogleAuth:ClientId hoac GoogleAuth:ClientIds chua duoc cau hinh.");
+                throw new InvalidOperationException("GoogleAuth:ClientId or GoogleAuth:ClientIds has not been configured.");
             }
 
             GoogleJsonWebSignature.Payload payload;
@@ -151,18 +226,18 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             }
             catch (InvalidJwtException)
             {
-                throw new InvalidOperationException("Google ID token khong hop le.");
+                throw new InvalidOperationException("Google ID token is not valid.");
             }
 
             if (!payload.EmailVerified)
             {
-                throw new InvalidOperationException("Email Google chua duoc xac thuc.");
+                throw new InvalidOperationException("Google email has not been verified.");
             }
 
             var normalizedEmail = NormalizeEmail(payload.Email);
             if (string.IsNullOrWhiteSpace(normalizedEmail))
             {
-                throw new InvalidOperationException("Google token khong co email hop le.");
+                throw new InvalidOperationException("Google token does not contain a valid email.");
             }
 
             var user = await _context.Users
@@ -171,11 +246,11 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (user != null)
             {
-                // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive của tài khoản.
-                // Nếu tài khoản bị Admin chuyển IsActive = false (hoặc Soft Delete), lập tức chặn không cho cấp JWT Token.
+                // PROTECT USER ACCOUNT: Check the IsActive flag of the account.
+                // If the account is set to IsActive = false by Admin (or Soft Delete), immediately block from issuing JWT Token.
                 if (!user.IsActive)
                 {
-                    throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
+                    throw new InvalidOperationException("Your account has been locked due to policy violations.");
                 }
 
                 user.LastLogin = DateTime.UtcNow;
@@ -188,7 +263,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (playerRole == null)
             {
-                throw new InvalidOperationException("Role Player khong ton tai.");
+                throw new InvalidOperationException("Role Player does not exist.");
             }
 
             user = new User
@@ -213,10 +288,10 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         {
             if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("Username/Email và Password không được để trống.");
+                throw new ArgumentException("Username/Email and Password cannot be empty.");
             }
 
-            // Email trong DB được lưu lowercase, nên cần normalize trước khi so sánh.
+            // Email in the DB is stored in lowercase, so it needs to be normalized before comparison.
             var loginIdentifier = usernameOrEmail.Trim();
             var normalizedEmail = NormalizeEmail(loginIdentifier);
 
@@ -226,33 +301,33 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             if (user == null)
             {
-                throw new InvalidOperationException("Username hoặc Email không tồn tại.");
+                throw new InvalidOperationException("Username or Email does not exist.");
             }
 
-            // BẢO VỆ NGHỆM NGẠT: Kiểm tra cờ IsActive trước khi cho phép đăng nhập.
-            // Ngăn chặn tài khoản bị Admin khóa (Block/Lock) tiếp tục truy cập hệ thống.
+            // PROTECT USER ACCOUNT: Check the IsActive flag of the account.
+            // If the account is set to IsActive = false by Admin (or Soft Delete), immediately block from issuing JWT Token.
             if (!user.IsActive)
             {
-                throw new InvalidOperationException("Tài khoản của bạn đã bị khóa do vi phạm quy định.");
+                throw new InvalidOperationException("Your account has been locked due to policy violations.");
             }
 
-            // So sánh password nhập vào với password hash trong database.
+            // PROTECT USER ACCOUNT: Compare the entered password with the hashed password in the database.
             var passwordValid = BCrypt.Net.BCrypt.Verify(password, user.Password);
             if (!passwordValid)
             {
-                throw new InvalidOperationException("Password không chính xác.");
+                throw new InvalidOperationException("Password is incorrect.");
             }
 
             return user;
         }
 
-        // Chuẩn hóa email để tránh lỗi khác chữ hoa/thường hoặc dư khoảng trắng.
+        // Chuáº©n hÃ³a email Ä‘á»ƒ trÃ¡nh lá»—i khÃ¡c chá»¯ hoa/thÆ°á»ng hoáº·c dÆ° khoáº£ng tráº¯ng.
         private static string NormalizeEmail(string email)
         {
             return email.Trim().ToLowerInvariant();
         }
 
-        // Tạo mã OTP 6 chữ số.
+        // Táº¡o mÃ£ OTP 6 chá»¯ sá»‘.
         private static string GenerateOtpCode()
         {
             return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
@@ -360,7 +435,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 return null;
             }
 
-            // Thu hồi token cũ (Xoay vòng Refresh Token)
+            // Thu há»“i token cÅ© (Xoay vÃ²ng Refresh Token)
             storedToken.Revoked = true;
             _context.RefreshTokens.Update(storedToken);
             await _context.SaveChangesAsync();
@@ -386,3 +461,4 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         }
     }
 }
+

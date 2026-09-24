@@ -15,5 +15,9 @@ namespace Rogue_Kie.BE.Contracts.Auth
         public string? Token { get; set; }
 
         public string? RefreshToken { get; set; }
+
+        public bool IsMaintenance { get; set; } = false;
+
+        public Rogue_Kie.BE.Contracts.Maintenance.CurrentMaintenanceStatusResponse? Maintenance { get; set; }
     }
 }

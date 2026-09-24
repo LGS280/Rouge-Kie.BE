@@ -20,6 +20,8 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
         public DbSet<WeaponConfig> WeaponConfigs { get; set; }
         public DbSet<LevelConfig> LevelConfigs { get; set; }
         public DbSet<BuffConfig> BuffConfigs { get; set; }
+        public DbSet<MaintenanceConfig> MaintenanceConfigs { get; set; }
+        public DbSet<ConfigAuditLog> ConfigAuditLogs { get; set; }
 
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
@@ -98,6 +100,7 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
             modelBuilder.Entity<WeaponConfig>().ToTable("WeaponConfigs");
             modelBuilder.Entity<LevelConfig>().ToTable("LevelConfigs");
             modelBuilder.Entity<BuffConfig>().ToTable("BuffConfigs");
+            modelBuilder.Entity<MaintenanceConfig>().ToTable("MaintenanceConfigs");
 
             // New mappings
             modelBuilder.Entity<RefreshToken>(entity =>
@@ -272,6 +275,40 @@ namespace Rogue_Kie.BE.DataAccess.DBContext
                     .WithMany()
                     .HasForeignKey(x => x.CharacterId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ConfigAuditLog mapping
+            modelBuilder.Entity<ConfigAuditLog>(entity =>
+            {
+                entity.ToTable("ConfigAuditLogs");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.TableName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Action)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(x => x.FieldName)
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.ChangedBy)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Reason)
+                    .HasMaxLength(500);
+
+                entity.HasOne(x => x.Maintenance)
+                    .WithMany()
+                    .HasForeignKey(x => x.MaintenanceId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(x => new { x.TableName, x.RecordId });
+                entity.HasIndex(x => x.MaintenanceId);
+                entity.HasIndex(x => x.ChangedAt);
             });
         }
     }

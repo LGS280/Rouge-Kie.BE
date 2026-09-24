@@ -52,7 +52,9 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
                 new EnemyConfig { Id = 1, EnemyName = "Slime", BaseHealth = 50, MoveSpeed = 2.0f, AttackSpeed = 1.5f, PrefabName = "SlimePrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
                 new EnemyConfig { Id = 2, EnemyName = "Goblin", BaseHealth = 100, MoveSpeed = 3.5f, AttackSpeed = 1.2f, PrefabName = "GoblinPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
                 new EnemyConfig { Id = 3, EnemyName = "Orc", BaseHealth = 250, MoveSpeed = 1.5f, AttackSpeed = 2.0f, PrefabName = "OrcPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, AttackSpeed = 0.5f, PrefabName = "DragonPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) }
+                new EnemyConfig { Id = 4, EnemyName = "Dragon", BaseHealth = 1000, MoveSpeed = 5.0f, AttackSpeed = 0.5f, PrefabName = "DragonPrefab", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 5, EnemyName = "Melog", BaseHealth = 500, MoveSpeed = 2.8f, AttackSpeed = 3.0f, PrefabName = "Melog", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new EnemyConfig { Id = 6, EnemyName = "Braead", BaseHealth = 1800, MoveSpeed = 2.2f, AttackSpeed = 3.0f, PrefabName = "Braead", CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc) }
             );
 
             modelBuilder.Entity<BulletConfig>().HasData(
@@ -72,11 +74,11 @@ namespace Rogue_Kie.BE.DataAccess.SeedData
             );
 
             modelBuilder.Entity<LevelConfig>().HasData(
-                new LevelConfig { Id = 1, StageId = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f },
-                new LevelConfig { Id = 2, StageId = 1, FloorNumber = 2, DifficultyMultiplier = 1.2f },
-                new LevelConfig { Id = 3, StageId = 1, FloorNumber = 3, DifficultyMultiplier = 1.5f },
-                new LevelConfig { Id = 4, StageId = 1, FloorNumber = 4, DifficultyMultiplier = 2.0f },
-                new LevelConfig { Id = 5, StageId = 1, FloorNumber = 5, DifficultyMultiplier = 3.0f } // Boss stage
+                new LevelConfig { Id = 1, StageId = 1, FloorNumber = 1, DifficultyMultiplier = 1.0f, BaseRoomCount = 7, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 0 },
+                new LevelConfig { Id = 2, StageId = 1, FloorNumber = 2, DifficultyMultiplier = 1.2f, BaseRoomCount = 8, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 0 },
+                new LevelConfig { Id = 3, StageId = 1, FloorNumber = 3, DifficultyMultiplier = 1.5f, BaseRoomCount = 9, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 },
+                new LevelConfig { Id = 4, StageId = 1, FloorNumber = 4, DifficultyMultiplier = 2.0f, BaseRoomCount = 10, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 },
+                new LevelConfig { Id = 5, StageId = 1, FloorNumber = 5, DifficultyMultiplier = 3.0f, BaseRoomCount = 11, CoopExtraRooms = 2, CoopMobHPMultiplier = 0.4f, CoopBossHPMultiplier = 0.6f, CoopExtraMobsPerRoom = 1, ChestRoomCount = 1, CoopExtraChestRooms = 1 } // Boss stage
             );
 
             modelBuilder.Entity<BuffConfig>().HasData(

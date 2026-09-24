@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rogue_Kie.BE.DataAccess.DBContext;
@@ -11,9 +12,11 @@ using Rogue_Kie.BE.DataAccess.DBContext;
 namespace Rogue_Kie.BE.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919132501_AddMaintenanceConfigTable")]
+    partial class AddMaintenanceConfigTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -315,63 +318,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.ConfigAuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ChangedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("FieldName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int?>("MaintenanceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("NewValue")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OldValue")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("RecordId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TableName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChangedAt");
-
-                    b.HasIndex("MaintenanceId");
-
-                    b.HasIndex("TableName", "RecordId");
-
-                    b.ToTable("ConfigAuditLogs", (string)null);
-                });
-
             modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.CosmeticItem", b =>
                 {
                     b.Property<int>("CosmeticId")
@@ -480,26 +426,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             EnemyName = "Dragon",
                             MoveSpeed = 5f,
                             PrefabName = "DragonPrefab"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            AttackSpeed = 3f,
-                            BaseHealth = 500,
-                            CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnemyName = "Melog",
-                            MoveSpeed = 2.8f,
-                            PrefabName = "Melog"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            AttackSpeed = 3f,
-                            BaseHealth = 1800,
-                            CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EnemyName = "Braead",
-                            MoveSpeed = 2.2f,
-                            PrefabName = "Braead"
                         });
                 });
 
@@ -610,27 +536,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BaseRoomCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ChestRoomCount")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("CoopBossHPMultiplier")
-                        .HasColumnType("real");
-
-                    b.Property<int>("CoopExtraChestRooms")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CoopExtraMobsPerRoom")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CoopExtraRooms")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("CoopMobHPMultiplier")
-                        .HasColumnType("real");
-
                     b.Property<float>("DifficultyMultiplier")
                         .HasColumnType("real");
 
@@ -648,13 +553,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            BaseRoomCount = 7,
-                            ChestRoomCount = 1,
-                            CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 0,
-                            CoopExtraMobsPerRoom = 1,
-                            CoopExtraRooms = 2,
-                            CoopMobHPMultiplier = 0.4f,
                             DifficultyMultiplier = 1f,
                             FloorNumber = 1,
                             StageId = 1
@@ -662,13 +560,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         new
                         {
                             Id = 2,
-                            BaseRoomCount = 8,
-                            ChestRoomCount = 1,
-                            CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 0,
-                            CoopExtraMobsPerRoom = 1,
-                            CoopExtraRooms = 2,
-                            CoopMobHPMultiplier = 0.4f,
                             DifficultyMultiplier = 1.2f,
                             FloorNumber = 2,
                             StageId = 1
@@ -676,13 +567,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         new
                         {
                             Id = 3,
-                            BaseRoomCount = 9,
-                            ChestRoomCount = 1,
-                            CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
-                            CoopExtraMobsPerRoom = 1,
-                            CoopExtraRooms = 2,
-                            CoopMobHPMultiplier = 0.4f,
                             DifficultyMultiplier = 1.5f,
                             FloorNumber = 3,
                             StageId = 1
@@ -690,13 +574,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         new
                         {
                             Id = 4,
-                            BaseRoomCount = 10,
-                            ChestRoomCount = 1,
-                            CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
-                            CoopExtraMobsPerRoom = 1,
-                            CoopExtraRooms = 2,
-                            CoopMobHPMultiplier = 0.4f,
                             DifficultyMultiplier = 2f,
                             FloorNumber = 4,
                             StageId = 1
@@ -704,13 +581,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                         new
                         {
                             Id = 5,
-                            BaseRoomCount = 11,
-                            ChestRoomCount = 1,
-                            CoopBossHPMultiplier = 0.6f,
-                            CoopExtraChestRooms = 1,
-                            CoopExtraMobsPerRoom = 1,
-                            CoopExtraRooms = 2,
-                            CoopMobHPMultiplier = 0.4f,
                             DifficultyMultiplier = 3f,
                             FloorNumber = 5,
                             StageId = 1
@@ -1253,7 +1123,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$v54f0cb5O5J3KqZjTgNCK.08NtGhwbCDxg0ByNrm4wc.FSzecw6xK",
+                            Password = "$2a$11$sDFHaPhWwbPHgFhfmq7LpuilKUMhOyXRhbOk4sgn4Z8rWkhcau3A6",
                             RoleId = 1,
                             Username = "admin"
                         },
@@ -1263,7 +1133,7 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             CreatedAt = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "guest@rogue-kie.local",
                             IsActive = true,
-                            Password = "$2a$11$8PQzVVGuV0LPDGvE1zz0dukKaSSW.j5GU9n91J44/Jnhl5ReRh2DC",
+                            Password = "$2a$11$z40wAIqb744VANiaNUw3W.KgQQVq7uq7/LpgTkeRZuyDwBagyoplW",
                             RoleId = 4,
                             Username = "guest"
                         });
@@ -1481,16 +1351,6 @@ namespace Rogue_Kie.BE.DataAccess.Migrations
                             WeaponName = "Sword",
                             WeaponType = "Melee"
                         });
-                });
-
-            modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.ConfigAuditLog", b =>
-                {
-                    b.HasOne("Rogue_Kie.BE.DataAccess.Models.MaintenanceConfig", "Maintenance")
-                        .WithMany()
-                        .HasForeignKey("MaintenanceId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Maintenance");
                 });
 
             modelBuilder.Entity("Rogue_Kie.BE.DataAccess.Models.GameSession", b =>
