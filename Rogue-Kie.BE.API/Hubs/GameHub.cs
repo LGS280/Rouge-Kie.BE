@@ -19,6 +19,25 @@ namespace Rogue_Kie.BE.API.Hubs
         {
             try
             {
+                // Kiểm tra nếu kết nối này đã sở hữu phòng trước đó (phòng thủ double-click / spam tạo phòng)
+                if (RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string existingRoomCode))
+                {
+                    if (RoomManager.ActiveRooms.TryGetValue(existingRoomCode, out var existingRoom))
+                    {
+                        // Nếu phòng cũ chỉ có 1 mình người này (Host) và chưa bắt đầu trận -> Dọn dẹp phòng cũ tránh tạo "phòng ma"
+                        if (existingRoom.Players.Count <= 1 && !existingRoom.IsGameStarted)
+                        {
+                            RoomManager.ActiveRooms.TryRemove(existingRoomCode, out _);
+                            await Groups.RemoveFromGroupAsync(Context.ConnectionId, existingRoomCode);
+                        }
+                        else
+                        {
+                            await Clients.Caller.SendAsync("OnJoinRoomFailed", "You are already in an active room!");
+                            return;
+                        }
+                    }
+                }
+
                 string roomCode = GenerateRoomCode();
 
                 if (string.IsNullOrWhiteSpace(username))
@@ -45,7 +64,7 @@ namespace Rogue_Kie.BE.API.Hubs
             catch (Exception ex)
             {
                 Console.WriteLine($"[GameHub] Lỗi CreateRoom: {ex}");
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Lỗi tạo phòng: {ex.Message}");
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Failed to create room: {ex.Message}");
             }
         }
 
@@ -56,7 +75,7 @@ namespace Rogue_Kie.BE.API.Hubs
             {
                 if (string.IsNullOrWhiteSpace(roomCode))
                 {
-                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Mã phòng không hợp lệ!");
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Invalid room code!");
                     return;
                 }
 
@@ -64,13 +83,13 @@ namespace Rogue_Kie.BE.API.Hubs
 
                 if (!RoomManager.ActiveRooms.TryGetValue(roomCode, out var room) || room == null)
                 {
-                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng không tồn tại hoặc đã giải tán!");
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Room does not exist or has been closed!");
                     return;
                 }
 
                 if (room.IsGameStarted)
                 {
-                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Phòng đang trong trận đấu!");
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", "Game has already started in this room!");
                     return;
                 }
 
@@ -100,7 +119,7 @@ namespace Rogue_Kie.BE.API.Hubs
 
                 if (room.Players.Count >= room.MaxPlayers)
                 {
-                    await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Phòng đã đầy! (Tối đa {room.MaxPlayers} người)");
+                    await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Room is full! (Max {room.MaxPlayers} players)");
                     return;
                 }
 
@@ -125,7 +144,7 @@ namespace Rogue_Kie.BE.API.Hubs
             catch (Exception ex)
             {
                 Console.WriteLine($"[GameHub] Lỗi JoinRoom: {ex}");
-                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Lỗi tham gia phòng: {ex.Message}");
+                await Clients.Caller.SendAsync("OnJoinRoomFailed", $"Failed to join room: {ex.Message}");
             }
         }
 
