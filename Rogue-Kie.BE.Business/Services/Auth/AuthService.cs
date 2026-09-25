@@ -1,4 +1,4 @@
-﻿using Google.Apis.Auth;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Rogue_Kie.BE.Business.Services.Email;
@@ -308,7 +308,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             // If the account is set to IsActive = false by Admin (or Soft Delete), immediately block from issuing JWT Token.
             if (!user.IsActive)
             {
-                throw new InvalidOperationException("Your account has been locked due to policy violations.");
+                throw new InvalidOperationException("Your account has been suspended by an Administrator.");
             }
 
             // PROTECT USER ACCOUNT: Compare the entered password with the hashed password in the database.
@@ -435,7 +435,12 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 return null;
             }
 
-            // Thu há»“i token cÅ© (Xoay vÃ²ng Refresh Token)
+            if (storedToken.User != null && !storedToken.User.IsActive)
+            {
+                return null;
+            }
+
+            // Thu hồi token cũ (Xoay vòng Refresh Token)
             storedToken.Revoked = true;
             _context.RefreshTokens.Update(storedToken);
             await _context.SaveChangesAsync();
