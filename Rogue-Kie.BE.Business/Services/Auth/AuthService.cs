@@ -13,6 +13,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
     {
         private const int OtpExpiryMinutes = 5;
         private const int OtpResendCooldownSeconds = 60;
+        private const int MaxOtpAttempts = 5;
 
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
@@ -26,9 +27,10 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         }
 
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _otpCooldowns = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Otp, DateTime Expiry, int FailedAttempts)> _registerOtps = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Otp, DateTime Expiry, int FailedAttempts)> _resetOtps = new();
 
         // Create and send OTP for registering email.
-        // If there is an error in this function, check if the email already exists, OTP cooldown, and SMTP configuration.
         public async Task SendRegisterOtpAsync(string email)
         {
             var normalizedEmail = NormalizeEmail(email);
@@ -56,17 +58,13 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("Email is already in use.");
             }
 
-            // OTP via DB is deprecated by new DBML. Just send mock OTP or bypass.
-            // For now, we simulate OTP sending success without database logging.
             var otpCode = GenerateOtpCode();
+            _registerOtps[normalizedEmail] = (otpCode, DateTime.UtcNow.AddMinutes(OtpExpiryMinutes), 0);
             await _emailService.SendRegisterOtpAsync(normalizedEmail, otpCode);
 
             // Record the time OTP was sent for rate limiting
             _otpCooldowns[normalizedEmail] = DateTime.UtcNow;
         }
-
-        // Register a new account directly without storing/verifying OTP via DB.
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Otp, DateTime Expiry)> _resetOtps = new();
 
         public async Task SendForgotPasswordOtpAsync(string email)
         {
@@ -94,7 +92,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
             }
 
             var otpCode = GenerateOtpCode();
-            _resetOtps[normalizedEmail] = (otpCode, DateTime.UtcNow.AddMinutes(OtpExpiryMinutes));
+            _resetOtps[normalizedEmail] = (otpCode, DateTime.UtcNow.AddMinutes(OtpExpiryMinutes), 0);
             
             await _emailService.SendForgotPasswordOtpAsync(normalizedEmail, otpCode);
             _otpCooldowns[normalizedEmail] = DateTime.UtcNow;
@@ -115,9 +113,23 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new InvalidOperationException("OTP code has expired. Please request a new code.");
             }
 
+            if (resetData.FailedAttempts >= MaxOtpAttempts)
+            {
+                throw new InvalidOperationException("Maximum OTP verification attempts exceeded. Verification blocked. Please request a new OTP code.");
+            }
+
             if (resetData.Otp != otpCode)
             {
-                throw new InvalidOperationException("OTP code is incorrect.");
+                int newAttempts = resetData.FailedAttempts + 1;
+                _resetOtps[normalizedEmail] = (resetData.Otp, resetData.Expiry, newAttempts);
+
+                if (newAttempts >= MaxOtpAttempts)
+                {
+                    throw new InvalidOperationException("Maximum OTP verification attempts exceeded. Verification blocked. Please request a new OTP code.");
+                }
+
+                int remaining = MaxOtpAttempts - newAttempts;
+                throw new InvalidOperationException($"OTP code is incorrect. Remaining attempts: {remaining}.");
             }
 
             if (newPassword.Length < 6 || newPassword.Length > 255)
@@ -165,6 +177,37 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 throw new ArgumentException("Password must be between 6 and 255 characters.");
             }
 
+            // Kiểm tra OTP Đăng ký
+            if (!_registerOtps.TryGetValue(normalizedEmail, out var regOtpData))
+            {
+                throw new InvalidOperationException("OTP code is invalid or has expired. Please request a new OTP.");
+            }
+
+            if (regOtpData.Expiry < DateTime.UtcNow)
+            {
+                _registerOtps.TryRemove(normalizedEmail, out _);
+                throw new InvalidOperationException("OTP code has expired. Please request a new code.");
+            }
+
+            if (regOtpData.FailedAttempts >= MaxOtpAttempts)
+            {
+                throw new InvalidOperationException("Maximum OTP verification attempts exceeded. Verification blocked. Please request a new OTP code.");
+            }
+
+            if (regOtpData.Otp != otpCode)
+            {
+                int newAttempts = regOtpData.FailedAttempts + 1;
+                _registerOtps[normalizedEmail] = (regOtpData.Otp, regOtpData.Expiry, newAttempts);
+
+                if (newAttempts >= MaxOtpAttempts)
+                {
+                    throw new InvalidOperationException("Maximum OTP verification attempts exceeded. Verification blocked. Please request a new OTP code.");
+                }
+
+                int remaining = MaxOtpAttempts - newAttempts;
+                throw new InvalidOperationException($"OTP code is incorrect. Remaining attempts: {remaining}.");
+            }
+
             // Không cho trùng username hoặc email vì cả hai đều dùng để định danh đăng nhập.
             var existingUser = await _context.Users
                 .AnyAsync(x => x.Username == username || x.Email == normalizedEmail);
@@ -196,6 +239,9 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            // Xóa OTP đăng ký sau khi tạo tài khoản thành công
+            _registerOtps.TryRemove(normalizedEmail, out _);
 
             return user;
         }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Rogue_Kie.BE.Contracts.Auth;
 using Rogue_Kie.BE.Business.Services.Auth;
@@ -21,27 +21,24 @@ namespace Rogue_Kie.BE.API.Controllers
             _maintenanceService = maintenanceService;
         }
 
-        // API gá»­i mÃ£ OTP Ä‘Äƒng kÃ½ vá» email.
-        // Unity gá»i endpoint nÃ y trÆ°á»›c khi gá»i /api/auth/register.
+        // Send OTP code to email for registration.
         [HttpPost("send-register-otp")]
         public async Task<IActionResult> SendRegisterOtp([FromBody] SendRegisterOtpRequest request)
         {
             try
             {
-                // Kiá»ƒm tra validate tá»« SendRegisterOtpRequest, vÃ­ dá»¥ email báº¯t buá»™c vÃ  Ä‘Ãºng format.
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                // Kiá»ƒm tra báº£o trÃ¬ há»‡ thá»‘ng
                 var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
                 if (maintStatus.IsUnderMaintenance)
                 {
                     return StatusCode(StatusCodes.Status503ServiceUnavailable, new SendRegisterOtpResponse
                     {
                         Success = false,
-                        Message = $"Há»‡ thá»‘ng Ä‘ang báº£o trÃ¬ ({maintStatus.Title}). Vui lÃ²ng quay láº¡i sau khi báº£o trÃ¬ hoÃ n táº¥t."
+                        Message = $"Server is under maintenance ({maintStatus.Title}). Please try again after maintenance completes."
                     });
                 }
 
@@ -50,7 +47,7 @@ namespace Rogue_Kie.BE.API.Controllers
                 return Ok(new SendRegisterOtpResponse
                 {
                     Success = true,
-                    Message = "MÃ£ OTP Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n email cá»§a báº¡n."
+                    Message = "OTP code has been sent to your email."
                 });
             }
             catch (ArgumentException ex)
@@ -71,20 +68,17 @@ namespace Rogue_Kie.BE.API.Controllers
             }
         }
 
-        // API Ä‘Äƒng kÃ½ tÃ i khoáº£n má»›i.
-        // Payload cáº§n username, email, password, confirmPassword vÃ  otpCode.
+        // Register a new account.
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
             {
-                // Náº¿u thiáº¿u field hoáº·c confirmPassword khÃ´ng khá»›p, dá»«ng trÆ°á»›c khi vÃ o service.
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
                 }
 
-                // Kiá»ƒm tra báº£o trÃ¬ há»‡ thá»‘ng
                 var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
                 if (maintStatus.IsUnderMaintenance)
                 {
@@ -93,7 +87,7 @@ namespace Rogue_Kie.BE.API.Controllers
                         Success = false,
                         IsMaintenance = true,
                         Maintenance = maintStatus,
-                        Message = $"Há»‡ thá»‘ng Ä‘ang báº£o trÃ¬ ({maintStatus.Title}). Vui lÃ²ng quay láº¡i sau khi báº£o trÃ¬ hoÃ n táº¥t."
+                        Message = $"Server is under maintenance ({maintStatus.Title}). Please try again after maintenance completes."
                     });
                 }
 
@@ -108,14 +102,14 @@ namespace Rogue_Kie.BE.API.Controllers
                     return BadRequest(new RegisterResponse
                     {
                         Success = false,
-                        Message = "KhÃ´ng thá»ƒ táº¡o tÃ i khoáº£n."
+                        Message = "Failed to create account."
                     });
                 }
 
                 return Created($"/api/auth/register", new RegisterResponse
                 {
                     Success = true,
-                    Message = "ÄÄƒng kÃ½ tÃ i khoáº£n thÃ nh cÃ´ng.",
+                    Message = "Account registered successfully.",
                     UserId = user.Id,
                     Username = user.Username,
                     Email = user.Email,
@@ -140,14 +134,12 @@ namespace Rogue_Kie.BE.API.Controllers
             }
         }
 
-        // API Ä‘Äƒng nháº­p.
-        // Field Username cÃ³ thá»ƒ nháº­n username hoáº·c email, pháº§n service sáº½ tá»± kiá»ƒm tra cáº£ hai.
+        // Login user.
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
-                // Kiá»ƒm tra request cÆ¡ báº£n trÆ°á»›c khi tÃ¬m user trong database.
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
@@ -160,11 +152,10 @@ namespace Rogue_Kie.BE.API.Controllers
                     return Unauthorized(new LoginResponse
                     {
                         Success = false,
-                        Message = "ÄÄƒng nháº­p tháº¥t báº¡i."
+                        Message = "Login failed."
                     });
                 }
 
-                // Kiá»ƒm tra báº£o trÃ¬ há»‡ thá»‘ng (Chá»‰ cho phÃ©p Admin vÃ  Developer truy cáº­p khi Ä‘ang báº£o trÃ¬)
                 var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
                 if (maintStatus.IsUnderMaintenance)
                 {
@@ -179,19 +170,18 @@ namespace Rogue_Kie.BE.API.Controllers
                             Success = false,
                             IsMaintenance = true,
                             Maintenance = maintStatus,
-                            Message = $"MÃ¡y chá»§ Ä‘ang báº£o trÃ¬: {maintStatus.Title}. Dá»± kiáº¿n hoÃ n táº¥t trong {maintStatus.RemainingMinutes} phÃºt ná»¯a."
+                            Message = $"Server is under maintenance: {maintStatus.Title}. Expected completion in {maintStatus.RemainingMinutes} minutes."
                         });
                     }
                 }
 
-                // Táº¡o JWT Ä‘á»ƒ Unity lÆ°u vÃ o PlayerPrefs vÃ  gá»­i kÃ¨m Authorization cho API cáº§n Ä‘Äƒng nháº­p.
                 var token = _tokenService.GenerateToken(user);
                 var refreshTokenObj = await _authService.GenerateRefreshTokenAsync(user.Id);
 
                 return Ok(new LoginResponse
                 {
                     Success = true,
-                    Message = "ÄÄƒng nháº­p thÃ nh cÃ´ng.",
+                    Message = "Login successful.",
                     UserId = user.Id,
                     Username = user.Username,
                     Role = user.Role?.Name ?? "User",
@@ -217,18 +207,18 @@ namespace Rogue_Kie.BE.API.Controllers
             }
         }
 
-                [HttpPost("forgot-password")]
+        [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] SendForgotPasswordOtpRequest request)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Email))
                 {
-                    return BadRequest(new { Success = false, Message = "Email không được để trống." });
+                    return BadRequest(new { Success = false, Message = "Email cannot be empty." });
                 }
 
                 await _authService.SendForgotPasswordOtpAsync(request.Email);
-                return Ok(new { Success = true, Message = "Nếu email hợp lệ, một mã OTP đã được gửi đến bạn." });
+                return Ok(new { Success = true, Message = "If the email is valid, an OTP code has been sent to you." });
             }
             catch (InvalidOperationException ex)
             {
@@ -252,17 +242,17 @@ namespace Rogue_Kie.BE.API.Controllers
 
                 if (request.NewPassword != request.ConfirmNewPassword)
                 {
-                    return BadRequest(new { Success = false, Message = "Mật khẩu xác nhận không khớp." });
+                    return BadRequest(new { Success = false, Message = "Confirm password does not match." });
                 }
 
                 var result = await _authService.ResetPasswordAsync(request.Email, request.OtpCode, request.NewPassword);
                 
                 if (result)
                 {
-                    return Ok(new { Success = true, Message = "Đổi mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới." });
+                    return Ok(new { Success = true, Message = "Password reset successful. You can now log in with your new password." });
                 }
                 
-                return BadRequest(new { Success = false, Message = "Đổi mật khẩu thất bại." });
+                return BadRequest(new { Success = false, Message = "Failed to reset password." });
             }
             catch (InvalidOperationException ex)
             {
@@ -290,11 +280,10 @@ namespace Rogue_Kie.BE.API.Controllers
                     return Unauthorized(new LoginResponse
                     {
                         Success = false,
-                        Message = "Dang nhap Google that bai."
+                        Message = "Google login failed."
                     });
                 }
 
-                // Kiá»ƒm tra báº£o trÃ¬ há»‡ thá»‘ng (Chá»‰ cho phÃ©p Admin vÃ  Developer truy cáº­p khi Ä‘ang báº£o trÃ¬)
                 var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
                 if (maintStatus.IsUnderMaintenance)
                 {
@@ -309,7 +298,7 @@ namespace Rogue_Kie.BE.API.Controllers
                             Success = false,
                             IsMaintenance = true,
                             Maintenance = maintStatus,
-                            Message = $"MÃ¡y chá»§ Ä‘ang báº£o trÃ¬: {maintStatus.Title}. Dá»± kiáº¿n hoÃ n táº¥t trong {maintStatus.RemainingMinutes} phÃºt ná»¯a."
+                            Message = $"Server is under maintenance: {maintStatus.Title}. Expected completion in {maintStatus.RemainingMinutes} minutes."
                         });
                     }
                 }
@@ -320,7 +309,7 @@ namespace Rogue_Kie.BE.API.Controllers
                 return Ok(new LoginResponse
                 {
                     Success = true,
-                    Message = "Dang nhap Google thanh cong.",
+                    Message = "Google login successful.",
                     UserId = user.Id,
                     Username = user.Username,
                     Role = user.Role?.Name ?? "User",
@@ -351,16 +340,15 @@ namespace Rogue_Kie.BE.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.RefreshToken))
             {
-                return BadRequest(new { Message = "Refresh Token khÃ´ng Ä‘Æ°á»£c trá»‘ng." });
+                return BadRequest(new { Message = "Refresh Token cannot be empty." });
             }
 
             var user = await _authService.VerifyRefreshTokenAsync(request.RefreshToken);
             if (user == null)
             {
-                return Unauthorized(new { Message = "Refresh Token khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n." });
+                return Unauthorized(new { Message = "Refresh Token is invalid or has expired." });
             }
 
-            // Kiá»ƒm tra báº£o trÃ¬ há»‡ thá»‘ng khi Refresh Token
             var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
             if (maintStatus.IsUnderMaintenance)
             {
@@ -375,7 +363,7 @@ namespace Rogue_Kie.BE.API.Controllers
                         Success = false,
                         IsMaintenance = true,
                         Maintenance = maintStatus,
-                        Message = $"MÃ¡y chá»§ Ä‘ang báº£o trÃ¬ ({maintStatus.Title})."
+                        Message = $"Server is under maintenance ({maintStatus.Title})."
                     });
                 }
             }
@@ -396,18 +384,16 @@ namespace Rogue_Kie.BE.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.RefreshToken))
             {
-                return BadRequest(new { Message = "Refresh Token khÃ´ng Ä‘Æ°á»£c trá»‘ng." });
+                return BadRequest(new { Message = "Refresh Token cannot be empty." });
             }
 
             var success = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
             if (!success)
             {
-                return BadRequest(new { Message = "KhÃ´ng tÃ¬m tháº¥y token hoáº·c token Ä‘Ã£ bá»‹ thu há»“i trÆ°á»›c Ä‘Ã³." });
+                return BadRequest(new { Message = "Token not found or has already been revoked." });
             }
 
-            return Ok(new { Message = "Thu há»“i Refresh Token thÃ nh cÃ´ng." });
+            return Ok(new { Message = "Refresh Token revoked successfully." });
         }
     }
 }
-
-
