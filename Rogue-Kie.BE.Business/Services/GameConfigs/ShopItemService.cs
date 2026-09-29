@@ -144,33 +144,83 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 await _context.SaveChangesAsync();
             }
 
-            // Kiểm tra nếu người chơi đã sở hữu vũ khí này thì không trừ tiền nữa
             string itemName = shopItem.Name ?? "";
             string lowerName = itemName.ToLower();
-            var existingWeapon = await _context.WeaponConfigs
-                .FirstOrDefaultAsync(w => w.WeaponName.ToLower() == lowerName 
-                                       || w.PrefabName.ToLower().Contains(lowerName) 
-                                       || lowerName.Contains(w.WeaponName.ToLower())
-                                       || (lowerName.Contains("ak") && w.PrefabName.Contains("AK"))
-                                       || (lowerName.Contains("missile") && w.PrefabName.Contains("Missile"))
-                                       || (lowerName.Contains("rocket") && w.PrefabName.Contains("Rocket")));
 
-            if (existingWeapon != null)
+            bool isCharacterItem = itemType == "CHARACTER" || itemType == "SKIN" || itemType == "HERO" 
+                                || lowerName.Contains("rookie") || lowerName.Contains("zero") 
+                                || lowerName.Contains("warrior") || lowerName.Contains("mage");
+
+            if (isCharacterItem)
             {
-                var isAlreadyUnlocked = await _context.PlayerWeapons
-                    .AnyAsync(pw => pw.ProfileId == profile.ProfileId && pw.WeaponConfigId == existingWeapon.Id && pw.IsUnlocked);
-
-                if (isAlreadyUnlocked)
+                // Tân binh Rookie là nhân vật mặc định, luôn luôn sở hữu sẵn
+                if (lowerName.Contains("rookie") || lowerName.Contains("warrior"))
                 {
                     return new BuyItemResponse
                     {
                         Success = false,
-                        Message = $"Bạn đã sở hữu vũ khí {shopItem.Name} rồi!",
+                        Message = "Nhân vật Tân Binh (Rookie) đã được mở khóa mặc định sẵn cho bạn!",
                         ShopItemId = shopItem.ShopItemId,
                         ItemName = shopItem.Name,
                         RemainingStandardCurrency = profile.StandardCurrency,
                         RemainingPremiumCurrency = profile.PremiumCurrency
                     };
+                }
+
+                // Kiểm tra nếu người chơi đã sở hữu nhân vật này
+                var existingChar = await _context.Characters
+                    .FirstOrDefaultAsync(c => c.Name.ToLower() == lowerName 
+                                           || c.PrefabName.ToLower() == lowerName 
+                                           || lowerName.Contains(c.Name.ToLower())
+                                           || lowerName.Contains(c.PrefabName.ToLower()));
+
+                if (existingChar != null)
+                {
+                    var isAlreadyUnlocked = await _context.PlayerCharacters
+                        .AnyAsync(pc => pc.ProfileId == profile.ProfileId && pc.CharacterId == existingChar.CharacterId && pc.IsUnlocked);
+
+                    if (isAlreadyUnlocked)
+                    {
+                        return new BuyItemResponse
+                        {
+                            Success = false,
+                            Message = $"Bạn đã sở hữu nhân vật {shopItem.Name} rồi!",
+                            ShopItemId = shopItem.ShopItemId,
+                            ItemName = shopItem.Name,
+                            RemainingStandardCurrency = profile.StandardCurrency,
+                            RemainingPremiumCurrency = profile.PremiumCurrency
+                        };
+                    }
+                }
+            }
+            else
+            {
+                // Kiểm tra nếu người chơi đã sở hữu vũ khí này thì không trừ tiền nữa
+                var existingWeapon = await _context.WeaponConfigs
+                    .FirstOrDefaultAsync(w => w.WeaponName.ToLower() == lowerName 
+                                           || w.PrefabName.ToLower().Contains(lowerName) 
+                                           || lowerName.Contains(w.WeaponName.ToLower())
+                                           || (lowerName.Contains("ak") && w.PrefabName.Contains("AK"))
+                                           || (lowerName.Contains("missile") && w.PrefabName.Contains("Missile"))
+                                           || (lowerName.Contains("rocket") && w.PrefabName.Contains("Rocket")));
+
+                if (existingWeapon != null)
+                {
+                    var isAlreadyUnlocked = await _context.PlayerWeapons
+                        .AnyAsync(pw => pw.ProfileId == profile.ProfileId && pw.WeaponConfigId == existingWeapon.Id && pw.IsUnlocked);
+
+                    if (isAlreadyUnlocked)
+                    {
+                        return new BuyItemResponse
+                        {
+                            Success = false,
+                            Message = $"Bạn đã sở hữu vũ khí {shopItem.Name} rồi!",
+                            ShopItemId = shopItem.ShopItemId,
+                            ItemName = shopItem.Name,
+                            RemainingStandardCurrency = profile.StandardCurrency,
+                            RemainingPremiumCurrency = profile.PremiumCurrency
+                        };
+                    }
                 }
             }
 
@@ -208,6 +258,9 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
 
             // Tự động lưu mở khóa vào PlayerWeapons nếu vật phẩm là vũ khí
             await AutoUnlockWeaponIfApplicableAsync(profile.ProfileId, shopItem);
+
+            // Tự động lưu mở khóa vào PlayerCharacters nếu vật phẩm là nhân vật
+            await AutoUnlockCharacterIfApplicableAsync(profile.ProfileId, shopItem);
 
             profile.UpdatedAt = System.DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -322,6 +375,54 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 {
                     playerWeapon.IsUnlocked = true;
                     playerWeapon.UnlockedAt ??= System.DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private async Task AutoUnlockCharacterIfApplicableAsync(int profileId, ShopItem shopItem)
+        {
+            string itemName = shopItem.Name ?? "";
+            string lowerName = itemName.ToLower();
+            string itemType = (shopItem.ItemType ?? "").ToUpper();
+
+            if (itemType != "CHARACTER" && itemType != "SKIN" && !lowerName.Contains("rookie") && !lowerName.Contains("zero"))
+                return;
+
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Name.ToLower() == lowerName 
+                                       || c.PrefabName.ToLower() == lowerName 
+                                       || lowerName.Contains(c.Name.ToLower())
+                                       || lowerName.Contains(c.PrefabName.ToLower()));
+
+            if (character == null)
+            {
+                if (lowerName.Contains("rookie"))
+                    character = await _context.Characters.FirstOrDefaultAsync(c => c.PrefabName == "Rookie");
+                else if (lowerName.Contains("zero"))
+                    character = await _context.Characters.FirstOrDefaultAsync(c => c.PrefabName == "Zero");
+            }
+
+            if (character != null)
+            {
+                var playerChar = await _context.PlayerCharacters
+                    .FirstOrDefaultAsync(pc => pc.ProfileId == profileId && pc.CharacterId == character.CharacterId);
+
+                if (playerChar == null)
+                {
+                    playerChar = new PlayerCharacter
+                    {
+                        ProfileId = profileId,
+                        CharacterId = character.CharacterId,
+                        IsUnlocked = true,
+                        UnlockedAt = System.DateTime.UtcNow
+                    };
+                    _context.PlayerCharacters.Add(playerChar);
+                }
+                else
+                {
+                    playerChar.IsUnlocked = true;
+                    playerChar.UnlockedAt ??= System.DateTime.UtcNow;
                 }
                 await _context.SaveChangesAsync();
             }
