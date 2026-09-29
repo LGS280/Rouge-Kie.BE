@@ -12,5 +12,6 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
         Task<CharacterResponse> CreateAsync(CreateCharacterRequest request);
         Task<CharacterResponse?> UpdateAsync(int id, UpdateCharacterRequest request);
         Task<bool> DeleteAsync(int id);
+        Task<List<PlayerCharacterResponse>> GetMyCharactersAsync(int userId);
     }
 }
