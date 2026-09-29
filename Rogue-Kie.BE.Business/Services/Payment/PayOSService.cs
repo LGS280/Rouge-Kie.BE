@@ -436,6 +436,7 @@ namespace Rogue_Kie.BE.Business.Services.Payment
             // Tự động mở khóa súng vĩnh viễn vào PlayerWeapons nếu đơn hàng mua súng VIP
             string desc = transaction.ReferenceCode ?? "";
             await AutoUnlockVietQRWeaponAsync(profile.ProfileId, desc, transaction.ShopItemId, transaction.Amount);
+            await AutoUnlockVietQRCharacterAsync(profile.ProfileId, desc, transaction.ShopItemId);
         }
 
         private async Task AutoUnlockVietQRWeaponAsync(int profileId, string description, int? shopItemId, int amount = 0)
@@ -544,6 +545,59 @@ namespace Rogue_Kie.BE.Business.Services.Payment
                 }
                 await _context.SaveChangesAsync();
                 _logger.LogInformation($"[PayOSService] Mo khoa thanh cong vu khi '{weapon.WeaponName}' ({weapon.PrefabName}) cho Profile {profileId}!");
+            }
+        }
+
+        private async Task AutoUnlockVietQRCharacterAsync(int profileId, string description, int? shopItemId)
+        {
+            Character? character = null;
+
+            if (shopItemId.HasValue)
+            {
+                var shopItem = await _context.ShopItems.FindAsync(shopItemId.Value);
+                if (shopItem != null)
+                {
+                    string sName = (shopItem.Name ?? "").ToLower();
+                    character = await _context.Characters
+                        .FirstOrDefaultAsync(c => c.Name.ToLower() == sName 
+                                               || c.PrefabName.ToLower() == sName 
+                                               || sName.Contains(c.Name.ToLower()) 
+                                               || sName.Contains(c.PrefabName.ToLower()));
+                }
+            }
+
+            string descLower = (description ?? "").ToLower();
+            if (character == null && !string.IsNullOrEmpty(descLower))
+            {
+                if (descLower.Contains("zero"))
+                    character = await _context.Characters.FirstOrDefaultAsync(c => c.PrefabName == "Zero");
+                else if (descLower.Contains("rookie"))
+                    character = await _context.Characters.FirstOrDefaultAsync(c => c.PrefabName == "Rookie");
+            }
+
+            if (character != null)
+            {
+                var playerChar = await _context.PlayerCharacters
+                    .FirstOrDefaultAsync(pc => pc.ProfileId == profileId && pc.CharacterId == character.CharacterId);
+
+                if (playerChar == null)
+                {
+                    playerChar = new PlayerCharacter
+                    {
+                        ProfileId = profileId,
+                        CharacterId = character.CharacterId,
+                        IsUnlocked = true,
+                        UnlockedAt = DateTime.UtcNow
+                    };
+                    _context.PlayerCharacters.Add(playerChar);
+                }
+                else
+                {
+                    playerChar.IsUnlocked = true;
+                    playerChar.UnlockedAt ??= DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"[PayOSService] Mo khoa thanh cong nhan vat '{character.Name}' ({character.PrefabName}) cho Profile {profileId}!");
             }
         }
 
