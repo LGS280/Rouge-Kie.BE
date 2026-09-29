@@ -26,7 +26,14 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                     Id = l.Id,
                     StageId = l.StageId,
                     FloorNumber = l.FloorNumber,
-                    DifficultyMultiplier = l.DifficultyMultiplier
+                    DifficultyMultiplier = l.DifficultyMultiplier,
+                    BaseRoomCount = l.BaseRoomCount,
+                    CoopExtraRooms = l.CoopExtraRooms,
+                    CoopMobHPMultiplier = l.CoopMobHPMultiplier,
+                    CoopBossHPMultiplier = l.CoopBossHPMultiplier,
+                    CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom,
+                    ChestRoomCount = l.ChestRoomCount,
+                    CoopExtraChestRooms = l.CoopExtraChestRooms
                 })
                 .ToListAsync();
         }
@@ -41,7 +48,14 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
                 Id = l.Id,
                 StageId = l.StageId,
                 FloorNumber = l.FloorNumber,
-                DifficultyMultiplier = l.DifficultyMultiplier
+                DifficultyMultiplier = l.DifficultyMultiplier,
+                BaseRoomCount = l.BaseRoomCount,
+                CoopExtraRooms = l.CoopExtraRooms,
+                CoopMobHPMultiplier = l.CoopMobHPMultiplier,
+                CoopBossHPMultiplier = l.CoopBossHPMultiplier,
+                CoopExtraMobsPerRoom = l.CoopExtraMobsPerRoom,
+                ChestRoomCount = l.ChestRoomCount,
+                CoopExtraChestRooms = l.CoopExtraChestRooms
             };
         }
 
@@ -51,7 +65,14 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             {
                 StageId = request.StageId,
                 FloorNumber = request.FloorNumber,
-                DifficultyMultiplier = request.DifficultyMultiplier
+                DifficultyMultiplier = request.DifficultyMultiplier,
+                BaseRoomCount = request.BaseRoomCount,
+                CoopExtraRooms = request.CoopExtraRooms,
+                CoopMobHPMultiplier = request.CoopMobHPMultiplier,
+                CoopBossHPMultiplier = request.CoopBossHPMultiplier,
+                CoopExtraMobsPerRoom = request.CoopExtraMobsPerRoom,
+                ChestRoomCount = request.ChestRoomCount,
+                CoopExtraChestRooms = request.CoopExtraChestRooms
             };
 
             _context.LevelConfigs.Add(entity);
@@ -68,6 +89,13 @@ namespace Rogue_Kie.BE.Business.Services.GameConfigs
             entity.StageId = request.StageId;
             entity.FloorNumber = request.FloorNumber;
             entity.DifficultyMultiplier = request.DifficultyMultiplier;
+            entity.BaseRoomCount = request.BaseRoomCount;
+            entity.CoopExtraRooms = request.CoopExtraRooms;
+            entity.CoopMobHPMultiplier = request.CoopMobHPMultiplier;
+            entity.CoopBossHPMultiplier = request.CoopBossHPMultiplier;
+            entity.CoopExtraMobsPerRoom = request.CoopExtraMobsPerRoom;
+            entity.ChestRoomCount = request.ChestRoomCount;
+            entity.CoopExtraChestRooms = request.CoopExtraChestRooms;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);

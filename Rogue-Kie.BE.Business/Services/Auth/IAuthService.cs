@@ -7,6 +7,8 @@ namespace Rogue_Kie.BE.Business.Services.Auth
     {
         Task SendRegisterOtpAsync(string email);
 
+        Task SendForgotPasswordOtpAsync(string email);
+        Task<bool> ResetPasswordAsync(string email, string otpCode, string newPassword);
         Task<User?> RegisterAsync(string username, string email, string password, string otpCode);
 
         Task<User?> LoginAsync(string usernameOrEmail, string password);

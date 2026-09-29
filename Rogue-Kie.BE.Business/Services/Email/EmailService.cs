@@ -71,5 +71,52 @@ namespace Rogue_Kie.BE.Business.Services.Email
                 throw new InvalidOperationException("Hệ thống không thể gửi email OTP lúc này. Vui lòng thử lại sau.");
             }
         }
+
+        public async Task SendForgotPasswordOtpAsync(string toEmail, string otpCode)
+        {
+            var fromEmail = _config["EmailSettings:FromEmail"] ?? _config["EmailSettings:Username"];
+            var fromName = _config["EmailSettings:FromName"] ?? "Rogue-Kie";
+            var host = _config["EmailSettings:Host"];
+            var port = int.TryParse(_config["EmailSettings:Port"], out var p) ? p : 587;
+            var username = _config["EmailSettings:Username"];
+            var password = _config["EmailSettings:Password"];
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                throw new InvalidOperationException("Cấu hình SMTP chưa được thiết lập trong appsettings.json.");
+            }
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = "Mã OTP Khôi Phục Mật Khẩu Rogue-Kie";
+
+            string htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;'>
+                    <h2 style='color: #333; text-align: center;'>Khôi Phục Mật Khẩu</h2>
+                    <p>Chào bạn,</p>
+                    <p>Mã OTP để đặt lại mật khẩu cho tài khoản của bạn là:</p>
+                    <div style='background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 4px; color: #ff4757; margin: 20px 0; border-radius: 4px;'>
+                        {otpCode}
+                    </div>
+                    <p style='color: #666; font-size: 14px;'>Mã này có hiệu lực trong vòng <b>5 phút</b>. Nếu bạn không yêu cầu đổi mật khẩu, vui lòng bỏ qua email này.</p>
+                </div>";
+
+            message.Body = new TextPart(TextFormat.Html) { Text = htmlBody };
+
+            try
+            {
+                using var client = new SmtpClient();
+                await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(username, password);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EmailService Error]: {ex.Message}");
+                throw new InvalidOperationException("Hệ thống không thể gửi email OTP lúc này. Vui lòng thử lại sau.");
+            }
+        }
     }
 }
