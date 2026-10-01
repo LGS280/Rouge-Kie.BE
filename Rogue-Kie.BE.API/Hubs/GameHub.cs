@@ -167,6 +167,15 @@ namespace Rogue_Kie.BE.API.Hubs
             }
         }
 
+        // 5. BỔ SUNG: Đồng bộ gộp tọa độ di chuyển và góc súng (Sync Player Transform)
+        public async Task SyncPlayerTransform(float x, float y, float angle)
+        {
+            if (RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string roomCode))
+            {
+                await Clients.OthersInGroup(roomCode).SendAsync("OnReceivePlayerTransform", Context.ConnectionId, x, y, angle);
+            }
+        }
+
         // ===================================================================================
         // BỔ SUNG: CÁC PHƯƠNG THỨC XỬ LÝ LỆNH ĐỒNG BỘ PHÒNG (ROOM COMBAT) TỪ CLIENT GỬI LÊN
         // ===================================================================================
