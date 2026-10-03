@@ -376,10 +376,40 @@ namespace Rogue_Kie.BE.API.Hubs
                 if (RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
                 {
                     room.DeadPlayers.Clear();
+                    room.ReadyBuffPlayers.Clear();
                 }
 
                 // Phát lệnh chuyển tầng tới tất cả thành viên trong nhóm phòng chơi
                 await Clients.Group(roomId).SendAsync("OnFloorTransitionSynced", targetFloor);
+            }
+        }
+
+        // BỔ SUNG: Đồng bộ xác nhận người chơi đã chọn xong Buff khi chuyển tầng (Co-op Buff Barrier)
+        public async Task PlayerBuffSelected(string roomId)
+        {
+            if (string.IsNullOrEmpty(roomId) && RoomManager.ConnectionToRoom.TryGetValue(Context.ConnectionId, out string foundRoom))
+            {
+                roomId = foundRoom;
+            }
+
+            if (!string.IsNullOrEmpty(roomId) && RoomManager.ActiveRooms.TryGetValue(roomId, out var room))
+            {
+                room.ReadyBuffPlayers.Add(Context.ConnectionId);
+                int totalPlayers = room.Players.Count;
+                int readyCount = room.ReadyBuffPlayers.Count;
+
+                Console.WriteLine($"[GameHub] Phòng {roomId}: {readyCount}/{totalPlayers} người chơi đã chọn xong Buff.");
+
+                // Phát sóng tiến độ chọn Buff cho cả phòng
+                await Clients.Group(roomId).SendAsync("OnBuffSelectionProgress", readyCount, totalPlayers);
+
+                // Khi tất cả người chơi trong phòng đều đã chọn xong Buff
+                if (readyCount >= totalPlayers)
+                {
+                    room.ReadyBuffPlayers.Clear();
+                    Console.WriteLine($"[GameHub] Phòng {roomId}: TOÀN BỘ thành viên đã chọn xong Buff! Bắt đầu tầng mới.");
+                    await Clients.Group(roomId).SendAsync("OnAllPlayersBuffsReady");
+                }
             }
         }
 
