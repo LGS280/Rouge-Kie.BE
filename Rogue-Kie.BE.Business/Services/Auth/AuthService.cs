@@ -249,7 +249,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
         // Login with username or email.
         // Unity still sends the field "username", but the value can be either username or email.
         // Login with Google/Gmail. Unity sends Google ID token to backend for verification.
-        public async Task<User?> LoginWithGoogleAsync(string idToken)
+        public async Task<User?> LoginWithGoogleAsync(string idToken, bool allowNewRegistration = true)
         {
             if (string.IsNullOrWhiteSpace(idToken))
             {
@@ -302,6 +302,12 @@ namespace Rogue_Kie.BE.Business.Services.Auth
                 user.LastLogin = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return user;
+            }
+
+            // Nếu không cho phép đăng ký mới (ví dụ hệ thống đang bảo trì), dừng lại không ghi xuống Database
+            if (!allowNewRegistration)
+            {
+                return null;
             }
 
             var playerRole = await _context.Roles

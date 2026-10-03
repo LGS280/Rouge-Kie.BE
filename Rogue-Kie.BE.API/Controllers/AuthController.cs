@@ -274,9 +274,23 @@ namespace Rogue_Kie.BE.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var user = await _authService.LoginWithGoogleAsync(request.IdToken);
+                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
+
+                // Nếu đang bảo trì, không cho phép tự động đăng ký tài khoản mới bằng Google
+                var user = await _authService.LoginWithGoogleAsync(request.IdToken, allowNewRegistration: !maintStatus.IsUnderMaintenance);
                 if (user == null)
                 {
+                    if (maintStatus.IsUnderMaintenance)
+                    {
+                        return StatusCode(StatusCodes.Status503ServiceUnavailable, new LoginResponse
+                        {
+                            Success = false,
+                            IsMaintenance = true,
+                            Maintenance = maintStatus,
+                            Message = $"Server is under maintenance ({maintStatus.Title}). Registration via Google is temporarily unavailable."
+                        });
+                    }
+
                     return Unauthorized(new LoginResponse
                     {
                         Success = false,
@@ -284,7 +298,6 @@ namespace Rogue_Kie.BE.API.Controllers
                     });
                 }
 
-                var maintStatus = await _maintenanceService.GetCurrentMaintenanceStatusAsync();
                 if (maintStatus.IsUnderMaintenance)
                 {
                     string userRole = user.Role?.Name ?? "User";
