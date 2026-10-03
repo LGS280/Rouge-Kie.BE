@@ -13,7 +13,7 @@ namespace Rogue_Kie.BE.Business.Services.Auth
 
         Task<User?> LoginAsync(string usernameOrEmail, string password);
 
-        Task<User?> LoginWithGoogleAsync(string idToken);
+        Task<User?> LoginWithGoogleAsync(string idToken, bool allowNewRegistration = true);
 
         Task<User?> VerifyRefreshTokenAsync(string token);
 

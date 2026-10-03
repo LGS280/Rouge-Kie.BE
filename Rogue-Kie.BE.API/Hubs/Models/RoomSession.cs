@@ -23,6 +23,11 @@ namespace Rogue_Kie.BE.API.Hubs.Models
         public HashSet<string> DeadPlayers { get; set; } = new HashSet<string>();
 
         /// <summary>
+        /// Tập hợp các ConnectionId của người chơi đã chọn xong Buff khi chuyển tầng
+        /// </summary>
+        public HashSet<string> ReadyBuffPlayers { get; set; } = new HashSet<string>();
+
+        /// <summary>
         /// Sĩ số tối đa của phòng chơi (mặc định 4 người)
         /// </summary>
         public int MaxPlayers { get; set; } = 4;
